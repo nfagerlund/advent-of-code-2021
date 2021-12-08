@@ -110,5 +110,8 @@ mod tests {
         assert_eq!(my_win.complete(), false);
         my_win.add(6).unwrap();
         assert_eq!(my_win.complete(), true);
+        if let Ok(_) = my_win.add(2) {
+            panic!("yo, adding to a complete window should have errored!");
+        }
     }
 }
