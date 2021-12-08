@@ -8,7 +8,7 @@ fn load_inputs(dataset: &str) -> std::io::Result<String> {
 // Count how many times the depth *increases*. Doesn't matter how much it
 // increases by, doesn't matter how many measurements there were.
 // Input is numbers separated by newlines.
-fn main() {
+fn single_comparison() {
     let inputs = load_inputs("day1a").unwrap();
     let mut last_sounding: Option<i32> = None;
     let mut increases = 0;
@@ -24,4 +24,26 @@ fn main() {
     }
 
     println!("Depth increased {} times", increases);
+}
+
+// OK, now count how many times depth increases in adjacent three-measurement
+// sliding windows:
+fn main() {
+    let inputs = load_inputs("day1a").unwrap();
+    let soundings_iter = inputs.lines()
+        .map(|l| { i32::from_str_radix(l, 10).unwrap() });
+    // okay, uhhhhh
+    // - Start accumulating a three-element window.
+    // - when it's complete, compare it to the previous full window and then set
+    //      previous = Some(current).
+    // - But!!! Need to be accumulating multiple windows at once!! See, like this:
+    //      one, two, three
+    //          two, three, four
+    //              three, four, five
+    //      See, "three" joined three separate windows before scrolling off.
+    // - If I'm to do this without losing track of what I'm doing, I'll want to
+    //      have a struct with clean update methods! And I'm gonna have to
+    //      actually manage borrow checking bc I can't just assign a
+    //      non-primitive to a var outside the loop like that.
+    // - While I'm at it, maybe I could implement PartialEq or something for the comparisons.
 }
