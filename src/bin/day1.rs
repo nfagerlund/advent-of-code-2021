@@ -1,4 +1,6 @@
 use std::fs;
+use std::fmt;
+use std::error::Error;
 
 fn load_inputs(dataset: &str) -> std::io::Result<String> {
     let file = format!("./inputs/{}.txt", dataset);
@@ -46,4 +48,67 @@ fn main() {
     //      actually manage borrow checking bc I can't just assign a
     //      non-primitive to a var outside the loop like that.
     // - While I'm at it, maybe I could implement PartialEq or something for the comparisons.
+}
+
+// Some custom errors... There must be a faster way to do this, but 🤷🏽
+#[derive(Debug)]
+pub struct WindowFullError;
+impl fmt::Display for WindowFullError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "can't add measurements to a completed measurement window")
+    }
+}
+
+#[derive(Debug)]
+pub struct WindowIncompleteError;
+impl fmt::Display for WindowIncompleteError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "can't read sum of an incomplete measurement window")
+    }
+}
+
+// May as well generalize this to accept arbitrary window size.
+pub struct Window {
+    sum: i32,
+    measurements: usize,
+    capacity: usize,
+}
+
+impl Window {
+    pub fn new(capacity: usize) -> Window {
+        Window {
+            sum: 0,
+            measurements: 0,
+            capacity,
+        }
+    }
+
+    pub fn complete(&self) -> bool {
+        self.measurements >= self.capacity
+    }
+
+    pub fn add(&mut self, measurement: i32) -> Result<(), WindowFullError> {
+        if self.complete() {
+            return Err(WindowFullError);
+        }
+        self.sum += measurement;
+        self.measurements += 1;
+        Ok(())
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn addition_and_completion() {
+        let mut my_win = Window::new(3);
+        my_win.add(2).unwrap();
+        my_win.add(4).unwrap();
+        assert_eq!(my_win.complete(), false);
+        my_win.add(6).unwrap();
+        assert_eq!(my_win.complete(), true);
+    }
 }
