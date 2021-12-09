@@ -30,23 +30,7 @@ fn part_one(inputs: String) -> i32 {
     // K let's do this. char_indices is the inner iterator we want, and we can
     // collect our stuff in a vec.
 
-    // I'm going to initialize the whole thing with zeroes first, just to make
-    // the subsequent logic cleaner. Assume each number in input is same length.
-    let input_width = inputs.lines().next().unwrap().len();
-    let mut digit_accumulators: Vec<i32> = vec![0; input_width];
-
-    for line in inputs.lines() {
-        for (index, digit) in line.char_indices() {
-            match digit {
-                '0' => digit_accumulators[index] -= 1,
-                '1' => digit_accumulators[index] += 1,
-                _ => panic!("unexpected digit in input: {}", digit),
-            }
-        }
-    }
-    // k. At this point, we should have what we need in terms of counts...
-    println!("{:?}", &digit_accumulators);
-    // OK! At least there's no ties!
+    let digit_accumulators = digit_frequencies(&inputs);
     // Now... Maybe let's use bit shifting, if I can do so without wrecking self.
     let mut gamma = 0;
     let mut epsilon = 0;
@@ -72,6 +56,27 @@ fn part_one(inputs: String) -> i32 {
     println!("Multiplied: {}", multiplied);
 
     multiplied
+}
+
+fn digit_frequencies(inputs: &str) -> Vec<i32> {
+    // I'm going to initialize the whole thing with zeroes first, just to make
+    // the subsequent logic cleaner. Assume each number in input is same length.
+    let input_width = inputs.lines().next().unwrap().len();
+    let mut digit_accumulators: Vec<i32> = vec![0; input_width];
+
+    for line in inputs.lines() {
+        for (index, digit) in line.char_indices() {
+            match digit {
+                '0' => digit_accumulators[index] -= 1,
+                '1' => digit_accumulators[index] += 1,
+                _ => panic!("unexpected digit in input: {}", digit),
+            }
+        }
+    }
+    // k. At this point, we should have what we need in terms of counts...
+    println!("{:?}", &digit_accumulators);
+    // OK! At least there's no ties!
+    digit_accumulators
 }
 
 #[cfg(test)]
