@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 use std::fs;
 use std::fmt;
+use std::ptr::NonNull;
 // use std::error::Error;
 
 fn load_inputs(dataset: &str) -> std::io::Result<String> {
@@ -139,6 +140,15 @@ impl WindowMgr {
             None
         }
     }
+
+    pub fn measure_and_extract_sum(&mut self, measurement: i32) -> Option<i32> {
+        match self.measure(measurement) {
+            None => None,
+            // vv :| I don't really like this, but I kind of painted myself into
+            // a corner by mixing Options and Results like this.
+            Some(win) => Some(win.sum().unwrap()),
+        }
+    }
 }
 
 
@@ -194,5 +204,7 @@ mod tests {
         // And another:
         let win = my_mgr.measure(6).unwrap();
         assert_eq!(win.sum().unwrap(), 15);
+        let sum = my_mgr.measure_and_extract_sum(9).unwrap();
+        assert_eq!(sum, 20);
     }
 }
