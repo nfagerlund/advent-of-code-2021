@@ -1,5 +1,4 @@
 use std::collections::VecDeque;
-use std::fs;
 use std::fmt;
 use advent21::load_inputs;
 
