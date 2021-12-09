@@ -1,6 +1,7 @@
+use std::collections::VecDeque;
 use std::fs;
 use std::fmt;
-use std::error::Error;
+// use std::error::Error;
 
 fn load_inputs(dataset: &str) -> std::io::Result<String> {
     let file = format!("./inputs/{}.txt", dataset);
@@ -104,6 +105,42 @@ impl Window {
     }
 }
 
+pub struct WindowMgr {
+    capacity: usize,
+    window_buffer: VecDeque<Window>,
+}
+
+impl WindowMgr {
+    pub fn new(capacity: usize) -> WindowMgr {
+        WindowMgr {
+            capacity,
+            window_buffer: VecDeque::with_capacity(capacity),
+        }
+    }
+
+    pub fn measure(&mut self, measurement: i32) -> Option<Window> {
+        // Once per measurement, before measuring, fill up to one empty slots in the buffer.
+        if self.window_buffer.len() < self.capacity {
+            self.window_buffer.push_back(Window::new(self.capacity));
+        }
+        // Add new measurement to every current window:
+        for window in self.window_buffer.iter_mut() {
+            // Uhhhh panicking here is a bit fast and loose, but, it's advent of
+            // code so that's more or less what I want.
+            window.add(measurement).unwrap();
+        }
+        // If the first window is full up, move it out of ourselves and return it.
+        // ...Again, unwrap seems proportionate for the time being. Should
+        // always be at least one window here by this point.
+        // Anyway, after doing this, there'll be a gap to fill next time.
+        if self.window_buffer.front().unwrap().complete() {
+            Some(self.window_buffer.pop_front().unwrap())
+        } else {
+            None
+        }
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -140,5 +177,22 @@ mod tests {
         if let Ok(_) = my_win.sum() {
             panic!("incomplete measurement windows shouldn't have valid sums!")
         }
+    }
+
+    #[test]
+    fn window_mgr_basics() {
+        let mut my_mgr = WindowMgr::new(3);
+        if let Some(_) = my_mgr.measure(4) {
+            panic!("shouldn't be returning anything yet");
+        }
+        if let Some(_) = my_mgr.measure(4) {
+            panic!("shouldn't be returning anything yet");
+        }
+        // Finally ready for a sum:
+        let win = my_mgr.measure(5).unwrap();
+        assert_eq!(win.sum().unwrap(), 13);
+        // And another:
+        let win = my_mgr.measure(6).unwrap();
+        assert_eq!(win.sum().unwrap(), 15);
     }
 }
