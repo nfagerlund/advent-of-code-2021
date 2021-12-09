@@ -34,8 +34,12 @@ fn single_comparison() {
 // sliding windows:
 fn main() {
     let inputs = load_inputs("day1a").unwrap();
+    let mut last_sum: Option<i32> = None;
+    let mut increases = 0;
+    let mut measurer = WindowMgr::new(3);
     let soundings_iter = inputs.lines()
         .map(|l| { i32::from_str_radix(l, 10).unwrap() });
+
     // okay, uhhhhh
     // - Start accumulating a three-element window.
     // - when it's complete, compare it to the previous full window and then set
@@ -50,6 +54,23 @@ fn main() {
     //      actually manage borrow checking bc I can't just assign a
     //      non-primitive to a var outside the loop like that.
     // - While I'm at it, maybe I could implement PartialEq or something for the comparisons.
+
+    // RIGHT.
+    for sounding in soundings_iter {
+        let next_sum = measurer.measure_and_extract_sum(sounding);
+        // IF we actually have complete windows to work with, then compare them.
+        if let Some(previous) = last_sum {
+            if let Some(next) = next_sum {
+                if next > previous {
+                    increases += 1;
+                }
+            }
+        }
+        // Regardless, update the last sum (which might still be nothing during the spin-up.)
+        last_sum = next_sum;
+    }
+
+    println!("Depth increased {} times (sliding window of 3)", increases);
 }
 
 // Some custom errors... There must be a faster way to do this, but 🤷🏽
