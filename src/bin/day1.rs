@@ -1,11 +1,7 @@
 use std::collections::VecDeque;
 use std::fs;
 use std::fmt;
-
-fn load_inputs(dataset: &str) -> std::io::Result<String> {
-    let file = format!("./inputs/{}.txt", dataset);
-    fs::read_to_string(file)
-}
+use advent21::load_inputs;
 
 // Count how many times the depth *increases*. Doesn't matter how much it
 // increases by, doesn't matter how many measurements there were.
