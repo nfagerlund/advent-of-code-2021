@@ -1,8 +1,6 @@
 use std::collections::VecDeque;
 use std::fs;
 use std::fmt;
-use std::ptr::NonNull;
-// use std::error::Error;
 
 fn load_inputs(dataset: &str) -> std::io::Result<String> {
     let file = format!("./inputs/{}.txt", dataset);
