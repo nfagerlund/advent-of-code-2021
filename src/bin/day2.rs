@@ -1,11 +1,11 @@
 use advent21::*;
 
 fn main() {
-    part_one()
+    let inputs = load_inputs("day2").unwrap();
+    part_one(inputs)
 }
 
-fn part_one() {
-    let inputs = load_inputs("day2").unwrap();
+fn part_one(inputs: String) {
     // OK, we have lines, we need to split them on spaces, then we need to switch
     // on commands, and we need to keep two running totals. Easy peasy.
     let mut x_pos = 0;
