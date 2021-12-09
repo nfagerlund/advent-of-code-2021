@@ -7,7 +7,27 @@ fn main() {
 
 fn part_two(inputs: String) -> i32 {
     let mut multiplied = 0;
+    let digit_accumulators = digit_frequencies(&inputs);
+    let mut oxygen = 0; // winnow by most common digit
+    let mut co2 = 0; // winnow by least common digit
+    // Ok ok ok hmm. take two iterators and successively filter them?
+    // Problem being, .filter() takes self, not &self, and thus consumes the
+    // target.
+    // WAIT
 
+    // OH NO
+
+    // THE DIGIT FREQUENCY COUNTS ARE GENERATED FROM THE SURVIVORS OF THE LAST ITERATION
+    // I can't re-use that frequency count function.
+    // Or, I guess I could. Just feed it new inputs each time. But now it's
+    // doing a ton of unnecessary work, because I only care about one digit at a
+    // time.
+    // Feck! This is a job for another day.
+    let mut oxygen_candidates = inputs.lines();
+    let mut co2_candidates = inputs.lines();
+
+
+    multiplied = oxygen * co2;
     multiplied
 }
 
