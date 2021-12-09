@@ -95,6 +95,13 @@ impl Window {
         self.measurements += 1;
         Ok(())
     }
+
+    pub fn sum(&self) -> Result<i32, WindowIncompleteError> {
+        if self.complete() {
+            return Ok(self.sum);
+        }
+        Err(WindowIncompleteError)
+    }
 }
 
 
@@ -112,6 +119,26 @@ mod tests {
         assert_eq!(my_win.complete(), true);
         if let Ok(_) = my_win.add(2) {
             panic!("yo, adding to a complete window should have errored!");
+        }
+    }
+
+    #[test]
+    fn summation() {
+        let mut my_win = Window::new(3);
+        my_win.add(2).unwrap();
+        my_win.add(4).unwrap();
+        my_win.add(6).unwrap();
+        let sum = my_win.sum().unwrap();
+        assert_eq!(sum, 12);
+    }
+
+    #[test]
+    fn no_incomplete_sums() {
+        let mut my_win = Window::new(3);
+        my_win.add(2).unwrap();
+        my_win.add(4).unwrap();
+        if let Ok(_) = my_win.sum() {
+            panic!("incomplete measurement windows shouldn't have valid sums!")
         }
     }
 }
