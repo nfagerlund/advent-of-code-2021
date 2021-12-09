@@ -2,7 +2,13 @@ use advent21::*;
 
 fn main() {
     let inputs = load_inputs("day3").unwrap();
-    part_one(inputs);
+    part_two(inputs);
+}
+
+fn part_two(inputs: String) -> i32 {
+    let mut multiplied = 0;
+
+    multiplied
 }
 
 fn part_one(inputs: String) -> i32 {
@@ -90,5 +96,11 @@ mod tests {
     fn example_part_one() {
         let multiplied: i32 = part_one(EXAMPLE.to_string());
         assert_eq!(multiplied, 198);
+    }
+
+    #[test]
+    fn example_part_two() {
+        let multiplied: i32 = part_two(EXAMPLE.to_string());
+        assert_eq!(multiplied, 230);
     }
 }
