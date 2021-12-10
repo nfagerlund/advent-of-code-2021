@@ -21,12 +21,14 @@ fn part_one(inputs: &str) -> i32 {
             board.mark(num);
             if board.winning() {
                 println!("Found a winning board!\n{:#?}", board);
-                return 1;
+                let score = board.score(num);
+                println!("Total score: {}", score);
+                return score
             }
         }
     }
 
-    42 // TODO
+    panic!("everybody loses!");
 }
 
 fn parse_inputs(inputs: &str) -> (Vec<i32>, Vec<Board>) {
@@ -88,12 +90,12 @@ impl Board {
     fn winning(&self) -> bool {
         // OK, let's calm down a bit. Start with just rows, bc that will let us
         // find the winner for the example.
-        // for row in self.squares.chunks(self.width) {
-        //     if line_wins(row.iter()) {
-        //         println!("Found a winning row! {:#?}", row);
-        //         return true;
-        //     }
-        // }
+        for row in self.squares.chunks(self.width) {
+            if line_wins(row.iter()) {
+                println!("Found a winning row! {:#?}", row);
+                return true;
+            }
+        }
         // And THEN see if we can do columns:
         // Map<Range<usize>, |usize| -> Vec<&Square>>
         let columns_iter = (0..self.width).map(|col| {
@@ -111,6 +113,19 @@ impl Board {
         }
 
         false
+    }
+
+    // Not checking whether it's valid to HAVE a score -- so only call this if
+    // you already know it won.
+    fn score(&self, multiplier: i32) -> i32 {
+        let sum = self.squares.iter().fold(0, |total, square| {
+            if square.marked() {
+                total + square.id
+            } else {
+                total
+            }
+        });
+        sum * multiplier
     }
 
     fn lines() {
