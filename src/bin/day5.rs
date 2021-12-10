@@ -1,4 +1,5 @@
 use advent21::*;
+use std::collections::HashMap;
 
 fn main() {
     let inputs = load_inputs("day5").unwrap();
@@ -8,9 +9,83 @@ fn main() {
 
 fn part_two(inputs: &str) {}
 
-fn part_one(inputs: &str) -> i32 {
+fn part_one(inputs: &str) -> usize {
+    let mut points_on_lines: HashMap<Point, usize> = HashMap::new();
+    let lines = parse_inputs(inputs);
+    for line in lines {
+        for point in line.points_on_line() {
+            let count = points_on_lines.entry(point).or_insert(0);
+            *count += 1;
+        }
+    }
+    let number_of_intersections: usize = points_on_lines.iter()
+        .filter(|(_point, count)| **count > 1).count();
+    number_of_intersections
+}
 
-    0
+fn parse_inputs(inputs: &str) -> Vec<Line> {
+    inputs.lines().map(|line| Line::parse(line)).collect()
+}
+
+struct Line {
+    start: Point,
+    end: Point,
+}
+
+impl Line {
+    fn new(start: Point, end: Point) -> Line {
+        Line { start, end }
+    }
+
+    //8,0 -> 0,8
+    fn parse(line_str: &str) -> Line {
+        let (start_str, end_str) = line_str.split_once(" -> ").unwrap();
+        Line::new(
+            Point::parse(start_str),
+            Point::parse(end_str),
+        )
+    }
+
+    fn points_on_line(&self) -> Vec<Point> {
+        self.points_on_line_no_diags()
+    }
+
+    fn points_on_line_no_diags(&self) -> Vec<Point> {
+        if self.start.x == self.end.x {
+            bidirectional_inclusive_range(self.start.y, self.end.y)
+                .map(|y| Point::new(self.start.x, y)).collect()
+        } else if self.start.y == self.end.y {
+            bidirectional_inclusive_range(self.start.x, self.end.x)
+                .map(|x| Point::new(x, self.start.y)).collect()
+        } else {
+            Vec::new()
+        }
+    }
+}
+
+// Returns the same range when given 9,18 or 18,9.
+fn bidirectional_inclusive_range(one: usize, two: usize) -> std::ops::RangeInclusive<usize> {
+    let mut inputs = [one, two];
+    inputs.sort();
+    inputs[0]..=inputs[1]
+}
+
+#[derive(PartialEq, Eq, Hash)]
+struct Point {
+    pub x: usize,
+    pub y: usize,
+}
+
+impl Point {
+    fn new(x: usize, y: usize) -> Point {
+        Point { x, y }
+    }
+
+    // "8,0"
+    fn parse(point_str: &str) -> Point {
+        let (x_str, y_str) = point_str.split_once(',').unwrap();
+        Point::new(usize_or_die(x_str), usize_or_die(y_str))
+    }
 }
 
 #[cfg(test)]
