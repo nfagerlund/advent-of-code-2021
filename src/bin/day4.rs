@@ -118,13 +118,15 @@ impl Board {
     // Not checking whether it's valid to HAVE a score -- so only call this if
     // you already know it won.
     fn score(&self, multiplier: i32) -> i32 {
+        // total the remaining UN-marked squares:
         let sum = self.squares.iter().fold(0, |total, square| {
             if square.marked() {
-                total + square.id
-            } else {
                 total
+            } else {
+                total + square.id
             }
         });
+        // multiply by the final called number:
         sum * multiplier
     }
 
