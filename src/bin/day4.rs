@@ -59,6 +59,13 @@ impl Board {
         // eh whatever
         Board { height: 5, width: 5, squares }
     }
+
+    fn lines() {
+        // ........
+        // So for columns, easy: they're numbered 0..width, and you filter to (index mod width == col_num).
+        // For rows, it's more like, they're numbered 0..height... row 0 is 0..5 (exclusive), row 1 is 5..10 (exclusive)
+        // ...so that's, filter to, (index >= row_num*height && index < (row_num+1)*height)
+    }
 }
 
 pub struct Square {
