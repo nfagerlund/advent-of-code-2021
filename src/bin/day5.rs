@@ -8,15 +8,25 @@ fn main() {
 }
 
 fn part_two(inputs: &str) -> usize {
-
-    0
+    let mut points_on_lines: HashMap<Point, usize> = HashMap::new();
+    let lines = parse_inputs(inputs);
+    for line in lines {
+        for point in line.points_on_line() {
+            let count = points_on_lines.entry(point).or_insert(0);
+            *count += 1;
+        }
+    }
+    let number_of_intersections: usize = points_on_lines.iter()
+        .filter(|(_point, count)| **count > 1).count();
+    println!("Number of intersections (horizontal/vertical lines only):\n{}", number_of_intersections);
+    number_of_intersections
 }
 
 fn part_one(inputs: &str) -> usize {
     let mut points_on_lines: HashMap<Point, usize> = HashMap::new();
     let lines = parse_inputs(inputs);
     for line in lines {
-        for point in line.points_on_line() {
+        for point in line.points_on_line_no_diags() {
             let count = points_on_lines.entry(point).or_insert(0);
             *count += 1;
         }
@@ -51,7 +61,20 @@ impl Line {
     }
 
     fn points_on_line(&self) -> Vec<Point> {
-        self.points_on_line_no_diags()
+        self.points_on_line_yes_diags()
+    }
+
+    // Diags are only ever 45 degrees. Get to be nice and lazy!!
+    fn points_on_line_yes_diags(&self) -> Vec<Point> {
+        // ...wait. I think this might be easier than the first version. Can I
+        // just......
+        let mut points = Vec::new();
+        for x in bidirectional_inclusive_range(self.start.x, self.end.x) {
+            for y in bidirectional_inclusive_range(self.start.y, self.end.y) {
+                points.push(Point::new(x, y));
+            }
+        }
+        points
     }
 
     fn points_on_line_no_diags(&self) -> Vec<Point> {
