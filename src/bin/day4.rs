@@ -1,5 +1,4 @@
 use advent21::*;
-use std::error::Error;
 
 fn main() {
     let inputs = load_inputs("daySOMETHING").unwrap();
@@ -10,16 +9,23 @@ fn main() {
 fn part_two(inputs: &str) {}
 
 fn part_one(inputs: &str) -> i32 {
-    println!("OKAY, SO:\n{:#?}", parse_inputs(&inputs));
+    let parsed_inputs = parse_inputs(&inputs);
+    let called_numbers = parsed_inputs.0;
+    let mut boards = parsed_inputs.1;
+    println!("Using {} called numbers to check {} boards", called_numbers.len(), boards.len());
+
     42 // TODO
 }
 
-fn parse_inputs(inputs: &str) -> (Vec<i32>, Vec<Vec<i32>>) {
+fn parse_inputs(inputs: &str) -> (Vec<i32>, Vec<Board>) {
     let mut blocks_iter = inputs.split("\n\n");
     let called_numbers: Vec<i32> = blocks_iter.next().unwrap().split(',')
         .map(|digit| { i32::from_str_radix(digit, 10).unwrap() }).collect();
-    let boards: Vec<Vec<i32>> = blocks_iter
-        .map(|grid| { parse_5x5grid_to_vec(grid) })
+    let boards: Vec<Board> = blocks_iter
+        .map(|grid| {
+            let squares = parse_5x5grid_to_squares(grid);
+            Board::new(squares)
+        })
         .collect();
     (called_numbers, boards)
 }
@@ -32,13 +38,46 @@ fn parse_5x5grid_to_vec(grid: &str) -> Vec<i32> {
         .collect()
 }
 
+fn parse_5x5grid_to_squares(grid: &str) -> Vec<Square> {
+    grid.split_whitespace()
+        .map(|num_str| {
+            let id = i32::from_str_radix(num_str, 10).unwrap();
+            Square::new(id)
+        })
+        .collect()
+}
+
 pub struct Board {
     height: usize,
     width: usize,
     squares: Vec<Square>,
 }
 
-pub struct Square {}
+impl Board {
+    // This *moves* the provided vec of squares in, be warned!
+    fn new(squares: Vec<Square>) -> Board {
+        // eh whatever
+        Board { height: 5, width: 5, squares }
+    }
+}
+
+pub struct Square {
+    id: i32,
+    marked: bool,
+}
+
+impl Square {
+    fn new(id: i32) -> Square {
+        Square {
+            id,
+            marked: false,
+        }
+    }
+
+    fn mark(&mut self) {
+        self.marked = true;
+    }
+}
 
 // Row or column
 pub struct Line {}
