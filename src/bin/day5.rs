@@ -7,7 +7,10 @@ fn main() {
     part_two(&inputs);
 }
 
-fn part_two(inputs: &str) {}
+fn part_two(inputs: &str) -> usize {
+
+    0
+}
 
 fn part_one(inputs: &str) -> usize {
     let mut points_on_lines: HashMap<Point, usize> = HashMap::new();
@@ -113,7 +116,7 @@ mod tests {
 
     #[test]
     fn example_part_two() {
-        let answer = ();
+        let answer = 12;
         let result = part_two(EXAMPLE);
         assert_eq!(result, answer);
     }
