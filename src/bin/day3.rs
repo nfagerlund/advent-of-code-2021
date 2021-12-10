@@ -35,7 +35,12 @@ fn part_two(inputs: String) -> i32 {
     let mut co2_candidates = inputs.clone();
     let mut co2_search_iterations: usize = 0;
     while co2_candidates.lines().count() > 1 {
-        let digit_to_use = most_common_digit_for_place(&co2_candidates, co2_search_iterations, '0');
+        let digit_to_not_use = most_common_digit_for_place(&co2_candidates, co2_search_iterations, '1');
+        let digit_to_use = match digit_to_not_use {
+            '1' => '0',
+            '0' => '1',
+            _ => panic!("whyyyyy"),
+        };
         co2_candidates = winnow_by_digit(&co2_candidates, co2_search_iterations, digit_to_use);
         co2_search_iterations += 1;
     }
