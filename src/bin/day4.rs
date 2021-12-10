@@ -1,14 +1,12 @@
-use std::iter::Map;
-
 use advent21::*;
 
 fn main() {
-    let inputs = load_inputs("daySOMETHING").unwrap();
+    let inputs = load_inputs("day4").unwrap();
     part_one(&inputs);
     part_two(&inputs);
 }
 
-fn part_two(inputs: &str) {}
+fn part_two(_inputs: &str) {}
 
 fn part_one(inputs: &str) -> i32 {
     let parsed_inputs = parse_inputs(&inputs);
@@ -44,7 +42,7 @@ fn parse_inputs(inputs: &str) -> (Vec<i32>, Vec<Board>) {
     (called_numbers, boards)
 }
 
-fn parse_5x5grid_to_vec(grid: &str) -> Vec<i32> {
+fn _parse_5x5grid_to_vec(grid: &str) -> Vec<i32> {
     grid.split_whitespace()
         .map(|num_str| {
             i32::from_str_radix(num_str, 10).unwrap()
@@ -129,27 +127,6 @@ impl Board {
         // multiply by the final called number:
         sum * multiplier
     }
-
-    fn lines() {
-        // ........
-        // So for columns, easy: they're numbered 0..width, and you filter to (index mod width == col_num).
-        // For rows, it's more like, they're numbered 0..height... row 0 is 0..5 (exclusive), row 1 is 5..10 (exclusive)
-        // ...so that's, filter to, (index >= row_num*height && index < (row_num+1)*height)
-        // Oh! .chunks!
-    }
-
-    // iterator of slices:
-    // fn rows(&self) -> core::slice::Chunks<Square> {
-    //     self.squares.chunks(self.width)
-    // }
-
-    // iterator of iterators
-    // fn columns(&self) -> Box<dyn Iterator<Item = impl Iterator + '_> + '_> {
-    //     let iter_of_iters = (0..self.width).map(|column| {
-    //         self.squares.iter().enumerate().filter(|(index, square)| { *index % self.width == column }).map(|tup| tup.1)
-    //     });
-    //     Box::new(iter_of_iters)
-    // }
 }
 
 // just checking that it has NO unmarked squares
