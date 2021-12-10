@@ -1,4 +1,5 @@
 use advent21::*;
+use std::error::Error;
 
 fn main() {
     let inputs = load_inputs("daySOMETHING").unwrap();
@@ -8,7 +9,39 @@ fn main() {
 
 fn part_two(inputs: &str) {}
 
-fn part_one(inputs: &str) -> i32 {}
+fn part_one(inputs: &str) -> i32 {
+    println!("OKAY, SO:\n{:#?}", parse_inputs(&inputs));
+    42 // TODO
+}
+
+fn parse_inputs(inputs: &str) -> (Vec<i32>, Vec<Vec<i32>>) {
+    let mut blocks_iter = inputs.split("\n\n");
+    let called_numbers: Vec<i32> = blocks_iter.next().unwrap().split(',')
+        .map(|digit| { i32::from_str_radix(digit, 10).unwrap() }).collect();
+    let boards: Vec<Vec<i32>> = blocks_iter
+        .map(|grid| { parse_5x5grid_to_vec(grid) })
+        .collect();
+    (called_numbers, boards)
+}
+
+fn parse_5x5grid_to_vec(grid: &str) -> Vec<i32> {
+    grid.split_whitespace()
+        .map(|num_str| {
+            i32::from_str_radix(num_str, 10).unwrap()
+        })
+        .collect()
+}
+
+pub struct Board {
+    height: usize,
+    width: usize,
+    squares: Vec<Square>,
+}
+
+pub struct Square {}
+
+// Row or column
+pub struct Line {}
 
 #[cfg(test)]
 mod tests {
