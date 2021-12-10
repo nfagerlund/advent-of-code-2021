@@ -6,8 +6,13 @@ fn main() {
     part_two(&inputs);
 }
 
-fn part_two(_inputs: &str) {}
+// Determine which board will win last, return its score
+fn part_two(_inputs: &str) -> i32 {
 
+    42 // TODO
+}
+
+// Determine which board will win first, return its score
 fn part_one(inputs: &str) -> i32 {
     let parsed_inputs = parse_inputs(&inputs);
     let called_numbers = parsed_inputs.0;
@@ -191,7 +196,7 @@ mod tests {
 
     #[test]
     fn example_part_two() {
-        let answer = ();
+        let answer = 1924;
         let result = part_two(EXAMPLE);
         assert_eq!(result, answer);
     }
