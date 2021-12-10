@@ -1,3 +1,5 @@
+use std::iter::Map;
+
 use advent21::*;
 
 fn main() {
@@ -13,6 +15,16 @@ fn part_one(inputs: &str) -> i32 {
     let called_numbers = parsed_inputs.0;
     let mut boards = parsed_inputs.1;
     println!("Using {} called numbers to check {} boards", called_numbers.len(), boards.len());
+    for num in called_numbers {
+        println!("calling {}", num);
+        for board in boards.iter_mut() {
+            board.mark(num);
+            if board.winning() {
+                println!("Found a winning board!\n{:#?}", board);
+                return 1;
+            }
+        }
+    }
 
     42 // TODO
 }
@@ -47,6 +59,7 @@ fn parse_5x5grid_to_squares(grid: &str) -> Vec<Square> {
         .collect()
 }
 
+#[derive(Debug)]
 pub struct Board {
     height: usize,
     width: usize,
@@ -56,8 +69,32 @@ pub struct Board {
 impl Board {
     // This *moves* the provided vec of squares in, be warned!
     fn new(squares: Vec<Square>) -> Board {
-        // eh whatever
-        Board { height: 5, width: 5, squares }
+        // hardcoding dimensions, meh
+        let height: usize = 5;
+        let width: usize = 5;
+        // this should be a Result, but sshhhhh
+        if squares.len() != height * width {
+            panic!("wyd");
+        }
+        Board { height, width, squares }
+    }
+
+    fn mark(&mut self, num: i32) {
+        for square in self.squares.iter_mut().filter(|s| s.id == num ) {
+            square.mark();
+        }
+    }
+
+    fn winning(&self) -> bool {
+        // OK, let's calm down a bit. Start with just rows, bc that will let us
+        // find the winner for the example.
+        for row in self.squares.chunks(self.width) {
+            if line_wins(row.iter()) {
+                println!("Found a winning row! {:#?}", row);
+                return true;
+            }
+        }
+        false
     }
 
     fn lines() {
@@ -65,11 +102,31 @@ impl Board {
         // So for columns, easy: they're numbered 0..width, and you filter to (index mod width == col_num).
         // For rows, it's more like, they're numbered 0..height... row 0 is 0..5 (exclusive), row 1 is 5..10 (exclusive)
         // ...so that's, filter to, (index >= row_num*height && index < (row_num+1)*height)
+        // Oh! .chunks!
     }
+
+    // iterator of slices:
+    // fn rows(&self) -> core::slice::Chunks<Square> {
+    //     self.squares.chunks(self.width)
+    // }
+
+    // iterator of iterators
+    // fn columns(&self) -> Box<dyn Iterator<Item = impl Iterator + '_> + '_> {
+    //     let iter_of_iters = (0..self.width).map(|column| {
+    //         self.squares.iter().enumerate().filter(|(index, square)| { *index % self.width == column }).map(|tup| tup.1)
+    //     });
+    //     Box::new(iter_of_iters)
+    // }
 }
 
+// just checking that it has NO unmarked squares
+fn line_wins<'a, T: Iterator<Item = &'a Square>>(line: T) -> bool {
+    line.filter(|sq| { !sq.marked() }).count() == 0
+}
+
+#[derive(Debug)]
 pub struct Square {
-    id: i32,
+    pub id: i32,
     marked: bool,
 }
 
@@ -84,10 +141,12 @@ impl Square {
     fn mark(&mut self) {
         self.marked = true;
     }
+
+    fn marked(&self) -> bool {
+        self.marked
+    }
 }
 
-// Row or column
-pub struct Line {}
 
 #[cfg(test)]
 mod tests {
