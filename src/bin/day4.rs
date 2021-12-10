@@ -13,8 +13,30 @@ fn part_two(inputs: &str) -> i32 {
     let called_numbers = parsed_inputs.0;
     let mut boards = parsed_inputs.1;
     println!("Using {} called numbers to check {} boards", called_numbers.len(), boards.len());
+    // All the same so far. The key difference this time is,
+    // - We don't stop when we hit a winning board.
+    // - We keep track (mmm, or just calculate) of how many boards have already won, and make our call based on that.
+    // Hmm. I think in order to keep track efficiently, we'll need a just_won function to supplant .winning() in this version.
+    let mut active_boards_count = boards.len();
+    for num in called_numbers {
+        println!("calling {}", num);
+        for board in boards.iter_mut() {
+            board.mark(num);
+            if board.just_won() {
+                let score = board.score(num);
+                println!("Found a winning board! Total score: {}", score);
+                active_boards_count -= 1;
+                println!("{} boards remaining.", active_boards_count);
+                // and HERE's the money:
+                if active_boards_count == 0 {
+                    println!("And! That was the final winner!!");
+                    return score;
+                }
+            }
+        }
+    }
 
-    42 // TODO
+    panic!("??? wtf? No one won last.")
 }
 
 // Determine which board will win first, return its score
@@ -113,9 +135,18 @@ impl Board {
     }
 
     fn winning(&self) -> bool {
-        // First off, if we already know this board is done, cache that shit!
         if self.cached_won() {
-            return true;
+            true
+        } else {
+            self.just_won()
+        }
+    }
+
+    fn just_won(&self) -> bool {
+        // If we learned that this board was done on a *previous* iteration, we
+        // did NOT just win!
+        if self.cached_won() {
+            return false;
         }
         // OK, let's calm down a bit. Start with just rows, bc that will let us
         // find the winner for the example.
