@@ -88,12 +88,28 @@ impl Board {
     fn winning(&self) -> bool {
         // OK, let's calm down a bit. Start with just rows, bc that will let us
         // find the winner for the example.
-        for row in self.squares.chunks(self.width) {
-            if line_wins(row.iter()) {
-                println!("Found a winning row! {:#?}", row);
+        // for row in self.squares.chunks(self.width) {
+        //     if line_wins(row.iter()) {
+        //         println!("Found a winning row! {:#?}", row);
+        //         return true;
+        //     }
+        // }
+        // And THEN see if we can do columns:
+        // Map<Range<usize>, |usize| -> Vec<&Square>>
+        let columns_iter = (0..self.width).map(|col| {
+            self.squares.iter().enumerate().filter(move |(index, _square)| {
+                *index % self.width == col
+            }).map(|(_, square)| square)
+        });
+        for column in columns_iter {
+            let column: Vec<&Square> = column.collect();
+            let sighhhhhh = column.clone();
+            if line_wins(column.into_iter()) {
+                println!("Found a winning column! {:#?}", sighhhhhh);
                 return true;
             }
         }
+
         false
     }
 
