@@ -1,4 +1,5 @@
 use advent21::*;
+use std::cell::RefCell;
 
 fn main() {
     let inputs = load_inputs("day4").unwrap();
@@ -7,7 +8,11 @@ fn main() {
 }
 
 // Determine which board will win last, return its score
-fn part_two(_inputs: &str) -> i32 {
+fn part_two(inputs: &str) -> i32 {
+    let parsed_inputs = parse_inputs(&inputs);
+    let called_numbers = parsed_inputs.0;
+    let mut boards = parsed_inputs.1;
+    println!("Using {} called numbers to check {} boards", called_numbers.len(), boards.len());
 
     42 // TODO
 }
@@ -69,6 +74,7 @@ pub struct Board {
     height: usize,
     width: usize,
     squares: Vec<Square>,
+    won: RefCell<bool>,
 }
 
 impl Board {
@@ -81,21 +87,42 @@ impl Board {
         if squares.len() != height * width {
             panic!("wyd");
         }
-        Board { height, width, squares }
+        Board { height, width, squares, won: RefCell::new(false) }
     }
 
     fn mark(&mut self, num: i32) {
+        // If this board just happens to be done, it's kind of consumed and we
+        // don't need to do this extra work. But don't bother computing
+        // .winning() early, bc it doesn't really matter if we do *one* tick of
+        // unnecessary work, it's just a chance to be lazy.
+        if self.cached_won() {
+            return;
+        }
+        // OK, so,
         for square in self.squares.iter_mut().filter(|s| s.id == num ) {
             square.mark();
         }
     }
 
+    fn cached_won(&self) -> bool {
+        *(self.won.borrow())
+    }
+
+    fn cache_win(&self) {
+        *(self.won.borrow_mut()) = true;
+    }
+
     fn winning(&self) -> bool {
+        // First off, if we already know this board is done, cache that shit!
+        if self.cached_won() {
+            return true;
+        }
         // OK, let's calm down a bit. Start with just rows, bc that will let us
         // find the winner for the example.
         for row in self.squares.chunks(self.width) {
             if line_wins(row.iter()) {
                 println!("Found a winning row! {:#?}", row);
+                self.cache_win();
                 return true;
             }
         }
@@ -111,6 +138,7 @@ impl Board {
             let sighhhhhh = column.clone();
             if line_wins(column.into_iter()) {
                 println!("Found a winning column! {:#?}", sighhhhhh);
+                self.cache_win();
                 return true;
             }
         }
