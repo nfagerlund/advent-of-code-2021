@@ -20,6 +20,7 @@ fn part_one(inputs: &str) -> usize {
     }
     let number_of_intersections: usize = points_on_lines.iter()
         .filter(|(_point, count)| **count > 1).count();
+    println!("Number of intersections (horizontal/vertical lines only):\n{}", number_of_intersections);
     number_of_intersections
 }
 
