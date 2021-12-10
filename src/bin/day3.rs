@@ -6,10 +6,6 @@ fn main() {
 }
 
 fn part_two(inputs: String) -> i32 {
-    let mut multiplied = 0;
-    let digit_accumulators = digit_frequencies(&inputs);
-    let mut oxygen = 0; // winnow by most common digit
-    let mut co2 = 0; // winnow by least common digit
     // Ok ok ok hmm. take two iterators and successively filter them?
     // Problem being, .filter() takes self, not &self, and thus consumes the
     // target.
@@ -23,12 +19,50 @@ fn part_two(inputs: String) -> i32 {
     // doing a ton of unnecessary work, because I only care about one digit at a
     // time.
     // Feck! This is a job for another day.
-    let mut oxygen_candidates = inputs.lines();
-    let mut co2_candidates = inputs.lines();
+    let mut oxygen_candidates = inputs.clone();
+    let mut oxygen_search_iterations: usize = 0;
+    while oxygen_candidates.lines().count() > 1 {
+        println!("oxygen iterations: {}; canditate count: {}", oxygen_search_iterations, oxygen_candidates.lines().count());
+        // uh, yolo?
+        let digit_to_use = most_common_digit_for_place(&oxygen_candidates, oxygen_search_iterations, '1');
+        oxygen_candidates = winnow_by_digit(&oxygen_candidates, oxygen_search_iterations, digit_to_use);
+        oxygen_search_iterations += 1;
+    }
+    let oxygen_string = oxygen_candidates.lines().next().unwrap();
+    let oxygen = i32::from_str_radix(oxygen_string, 2).unwrap();
+    println!("final oxygen value result: {} ({})", oxygen_string, oxygen);
 
+    let mut co2_candidates = inputs.clone();
+    let mut co2_search_iterations: usize = 0;
+    while co2_candidates.lines().count() > 1 {
+        let digit_to_use = most_common_digit_for_place(&co2_candidates, co2_search_iterations, '0');
+        co2_candidates = winnow_by_digit(&co2_candidates, co2_search_iterations, digit_to_use);
+        co2_search_iterations += 1;
+    }
+    let co2_string = co2_candidates.lines().next().unwrap();
+    let co2 = i32::from_str_radix(co2_string, 2).unwrap();
+    println!("final co2 value result: {} ({})", co2_string, co2);
 
-    multiplied = oxygen * co2;
+    let multiplied = oxygen * co2;
+    println!("multiplied value: {}", multiplied);
+
     multiplied
+}
+
+// I'm having some hard conceptual problems with passing iterators around, so uh,
+// (value: char is nasty but oh well)
+// place is zero-indexed -- 0 -> first digit.
+// Anyway, this fn requires you to know the frequency balance for that digit already.
+// And it panics if you try to overrun the length of the input number.
+fn winnow_by_digit(inputs: &str, place: usize, value: char) -> String {
+    inputs.lines().filter(|number| {
+        let digit = number.chars().nth(place).unwrap();
+        digit == value
+    }).fold(String::new(), |mut accum, val| {
+        accum.push_str(val);
+        accum.push_str("\n");
+        accum
+    })
 }
 
 fn part_one(inputs: String) -> i32 {
@@ -76,6 +110,24 @@ fn part_one(inputs: String) -> i32 {
     println!("Multiplied: {}", multiplied);
 
     multiplied
+}
+
+fn most_common_digit_for_place(inputs: &str, place: usize, tiebreaker: char) -> char {
+    // println!("counting inputs:\n{}", inputs);
+    let sum = inputs.lines()
+        .map(|line| { line.chars().nth(place).unwrap() })
+        .fold(0, |accum, val| {
+            accum + match val {
+                '0' => -1,
+                '1' => 1,
+                _ => panic!("Unexpected character in binary number"),
+            }
+        });
+    match sum {
+        0 => tiebreaker,
+        (i32::MIN..=-1) => '0',
+        (1..=i32::MAX) => '1',
+    }
 }
 
 fn digit_frequencies(inputs: &str) -> Vec<i32> {
