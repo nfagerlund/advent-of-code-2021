@@ -42,6 +42,7 @@ fn n_generations_later(pop: Population, generations: usize) -> Population {
 }
 
 fn the_next_generation(pop: &Population) -> Population {
+    println!("Iterating on fish population. \nYesterday: {:?}", pop);
     // I think we can get away with doing this immutably, since really we're
     // only doing like 80 loops of this part.
     let mut next_pop = [0usize; 9];
@@ -57,6 +58,7 @@ fn the_next_generation(pop: &Population) -> Population {
     // NEW fish into slot 8:
     next_pop[6] += reproducing;
     next_pop[8] = reproducing;
+    println!("Today    : {:?}", &next_pop);
     next_pop
 }
 
@@ -68,6 +70,7 @@ fn parse_inputs(inputs: &str) -> Population {
         // panic when we access into the array.
         pop[age] += 1;
     }
+    println!("Parsed inputs.\nInitial population: {:?}", &pop);
     pop
 }
 
