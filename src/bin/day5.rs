@@ -1,6 +1,7 @@
 use advent21::*;
 use std::collections::HashMap;
 use std::cmp::max;
+use std::cmp::Ordering;
 
 fn main() {
     let inputs = load_inputs("day5").unwrap();
@@ -34,7 +35,7 @@ fn part_one(inputs: &str) -> usize {
     }
     let number_of_intersections: usize = points_on_lines.iter()
         .filter(|(_point, count)| **count > 1).count();
-    println!("Number of intersections (horizontal/vertical lines only):\n{}", number_of_intersections);
+    println!("Number of intersections (horizontal/vertical/45° lines):\n{}", number_of_intersections);
     number_of_intersections
 }
 
@@ -80,10 +81,9 @@ impl Line {
             bidirectional_inclusive_range(self.start.x, self.end.x).count(),
             bidirectional_inclusive_range(self.start.y, self.end.y).count(),
         );
-        let x_vec = bidirectional_inclusive_range_with_padding(self.start.x, self.end.x, length);
-        let y_vec = bidirectional_inclusive_range_with_padding(self.start.y, self.end.y, length);
+        let x_vec = point_components_for_dimension(self.start.x, self.end.x, length);
+        let y_vec = point_components_for_dimension(self.start.y, self.end.y, length);
 
-        println!("Hmmmm\nXes:\n{:#?}\nYs:{:#?}", &x_vec, &y_vec);
         for (x, y) in x_vec.iter().zip(y_vec.iter()) {
             points.push(Point::new(*x, *y));
         }
@@ -110,11 +110,20 @@ fn bidirectional_inclusive_range(one: usize, two: usize) -> std::ops::RangeInclu
     inputs[0]..=inputs[1]
 }
 
-fn bidirectional_inclusive_range_with_padding(one: usize, two: usize, length: usize) -> Vec<usize> {
-    if one == two {
-        vec![one; length]
-    } else {
-        bidirectional_inclusive_range(one, two).collect()
+fn point_components_for_dimension(one: usize, two: usize, length: usize) -> Vec<usize> {
+    match one.cmp(&two) {
+        Ordering::Equal => {
+            // dimension has same value for whole line.
+            vec![one; length]
+        },
+        Ordering::Less => {
+            // dimension increases start -> end
+            (one..=two).collect()
+        },
+        Ordering::Greater => {
+            // dimension decreases start -> end
+            (two..=one).rev().collect()
+        }
     }
 }
 
