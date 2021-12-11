@@ -11,8 +11,7 @@ fn main() {
 }
 
 fn part_two(inputs: &str) -> usize {
-
-    0
+    part_every(inputs, amended_fuel_cost)
 }
 
 fn part_one(inputs: &str) -> usize {
@@ -61,6 +60,20 @@ fn part_every(inputs: &str, fuel_cost_fn: fn(usize, usize) -> usize) -> usize {
 fn fuel_cost(start: usize, end: usize) -> usize {
     let difference = start as i32 - end as i32;
     difference.abs() as usize
+}
+
+fn amended_fuel_cost(start: usize, end: usize) -> usize {
+    let difference = fuel_cost(start, end);
+    // s2g there's a name for this operation??? losing my mind here.
+    // 1 -> 1, 2 -> 3, 3 -> 6, 4 -> 10, 5 -> 15, 6 -> 21
+    // oh right, there's a long recursive way and a fast cheater way:
+    // 2 -> (1 + 2) * 2/2 = 3
+    // 3 -> (1 + 3) * 3/2 = 6
+    // 4 -> (1 + 4) * 4/2 = 10
+    // 5 -> (1 + 5) * 5/2 = 15
+    // 1 -> (1 + 1) * 1/2 = 1
+    // 0 -> (1 + 0) * 0/2 = 0
+    ( (1 + difference) * difference ) / 2
 }
 
 // ...I think we need a vec for this, bc who knows what all horizontal positions
