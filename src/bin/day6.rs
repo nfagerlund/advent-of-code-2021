@@ -16,7 +16,15 @@ fn main() {
     part_two(&inputs);
 }
 
-fn part_two(_inputs: &str) {}
+fn part_two(inputs: &str) -> usize {
+    let pop = parse_inputs(inputs);
+    let final_pop = n_generations_later(pop, 256);
+    println!("Final population: \n{:#?}", &final_pop);
+    let count = final_pop.iter()
+        .fold(0usize, |total, val| { total + *val });
+    println!("Total population size (256 iterations): {}", count);
+    count
+}
 
 fn part_one(inputs: &str) -> usize {
     let pop = parse_inputs(inputs);
@@ -24,7 +32,7 @@ fn part_one(inputs: &str) -> usize {
     println!("Final population: \n{:#?}", &final_pop);
     let count = final_pop.iter()
         .fold(0usize, |total, val| { total + *val });
-    println!("Total population size: {}", count);
+    println!("Total population size (80 iterations): {}", count);
     count
 }
 
@@ -42,7 +50,7 @@ fn n_generations_later(pop: Population, generations: usize) -> Population {
 }
 
 fn the_next_generation(pop: &Population) -> Population {
-    println!("Iterating on fish population. \nYesterday: {:?}", pop);
+    // println!("Iterating on fish population. \nYesterday: {:?}", pop);
     // I think we can get away with doing this immutably, since really we're
     // only doing like 80 loops of this part.
     let mut next_pop = [0usize; 9];
@@ -58,7 +66,7 @@ fn the_next_generation(pop: &Population) -> Population {
     // NEW fish into slot 8:
     next_pop[6] += reproducing;
     next_pop[8] = reproducing;
-    println!("Today    : {:?}", &next_pop);
+    // println!("Today    : {:?}", &next_pop);
     next_pop
 }
 
@@ -88,7 +96,7 @@ mod tests {
 
     #[test]
     fn example_part_two() {
-        let answer = ();
+        let answer = 26984457539;
         let result = part_two(EXAMPLE);
         assert_eq!(result, answer);
     }
