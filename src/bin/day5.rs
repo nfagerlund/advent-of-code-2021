@@ -1,5 +1,6 @@
 use advent21::*;
 use std::collections::HashMap;
+use std::cmp::max;
 
 fn main() {
     let inputs = load_inputs("day5").unwrap();
@@ -69,10 +70,22 @@ impl Line {
         // ...wait. I think this might be easier than the first version. Can I
         // just......
         let mut points = Vec::new();
-        for x in bidirectional_inclusive_range(self.start.x, self.end.x) {
-            for y in bidirectional_inclusive_range(self.start.y, self.end.y) {
-                points.push(Point::new(x, y));
-            }
+
+        // zip requires that the two iterators be the same length, in order to
+        // be useful for my case. In the case of horizontal or vertical lines,
+        // at least one of the iterators will only have one element in it,
+        // which, bad. So, replace it with one that gives the same value as many
+        // times as needed.
+        let length = max(
+            bidirectional_inclusive_range(self.start.x, self.end.x).count(),
+            bidirectional_inclusive_range(self.start.y, self.end.y).count(),
+        );
+        let x_vec = bidirectional_inclusive_range_with_padding(self.start.x, self.end.x, length);
+        let y_vec = bidirectional_inclusive_range_with_padding(self.start.y, self.end.y, length);
+
+        println!("Hmmmm\nXes:\n{:#?}\nYs:{:#?}", &x_vec, &y_vec);
+        for (x, y) in x_vec.iter().zip(y_vec.iter()) {
+            points.push(Point::new(*x, *y));
         }
         points
     }
@@ -95,6 +108,14 @@ fn bidirectional_inclusive_range(one: usize, two: usize) -> std::ops::RangeInclu
     let mut inputs = [one, two];
     inputs.sort();
     inputs[0]..=inputs[1]
+}
+
+fn bidirectional_inclusive_range_with_padding(one: usize, two: usize, length: usize) -> Vec<usize> {
+    if one == two {
+        vec![one; length]
+    } else {
+        bidirectional_inclusive_range(one, two).collect()
+    }
 }
 
 #[derive(PartialEq, Eq, Hash)]
