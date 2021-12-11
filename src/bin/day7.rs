@@ -16,6 +16,10 @@ fn part_two(inputs: &str) -> usize {
 }
 
 fn part_one(inputs: &str) -> usize {
+    part_every(inputs, fuel_cost)
+}
+
+fn part_every(inputs: &str, fuel_cost_fn: fn(usize, usize) -> usize) -> usize {
     let crab_positions = parse_inputs(inputs);
     // Right OK. I think we can get away with just one additional vec and a
     // double loop, for this one.
@@ -23,7 +27,7 @@ fn part_one(inputs: &str) -> usize {
     for (destination, cost) in fuel_costs.iter_mut().enumerate() {
         for (crab_position, crab_count) in crab_positions.iter().enumerate() {
             if *crab_count > 0 {
-                let individual_cost = fuel_cost(crab_position, destination);
+                let individual_cost = fuel_cost_fn(crab_position, destination);
                 *cost += individual_cost * *crab_count;
             }
         }
