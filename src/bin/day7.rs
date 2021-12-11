@@ -13,8 +13,29 @@ fn main() {
 fn part_two(_inputs: &str) {}
 
 fn part_one(inputs: &str) -> usize {
-    let _ = parse_inputs(inputs);
-    0
+    let crab_positions = parse_inputs(inputs);
+    // Right OK. I think we can get away with just one additional vec and a
+    // double loop, for this one.
+    let mut fuel_costs = vec![0usize; crab_positions.len()];
+    for (destination, cost) in fuel_costs.iter_mut().enumerate() {
+        for (crab_position, crab_count) in crab_positions.iter().enumerate() {
+            if *crab_count > 0 {
+                let individual_cost = fuel_cost(crab_position, destination);
+                *cost += individual_cost * *crab_count;
+            }
+        }
+    }
+    let cheapest_destination = fuel_costs.iter()
+        .fold(usize::MAX, |min, val| cmp::min(min, *val) );
+    let expensivist_destination = fuel_costs.iter()
+        .fold(usize::MIN, |max, val| cmp::max(max, *val) );
+    println!("Cheapest destination: {}\nMost expensive destination: {}", cheapest_destination, expensivist_destination);
+    cheapest_destination
+}
+
+fn fuel_cost(start: usize, end: usize) -> usize {
+    let difference = start as i32 - end as i32;
+    difference.abs() as usize
 }
 
 // ...I think we need a vec for this, bc who knows what all horizontal positions
