@@ -16,7 +16,7 @@ fn main() {
     part_two(&inputs);
 }
 
-fn part_two(inputs: &str) {}
+fn part_two(_inputs: &str) {}
 
 fn part_one(inputs: &str) -> usize {
     let pop = parse_inputs(inputs);
