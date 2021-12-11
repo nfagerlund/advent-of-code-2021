@@ -45,11 +45,12 @@ fn the_next_generation(pop: &Population) -> Population {
     // I think we can get away with doing this immutably, since really we're
     // only doing like 80 loops of this part.
     let mut next_pop = [0usize; 9];
-    let mut pop_iter = pop.iter();
+    let mut pop_iter = pop.iter().enumerate();
     // set the 0 slot aside for later:
-    let reproducing = *(pop_iter.next().unwrap());
+    let (_, reproducing) = pop_iter.next().unwrap();
+    let reproducing = *reproducing;
     // copy slots 1 thru 8 into their next ticks:
-    for (age, count) in pop_iter.enumerate() {
+    for (age, count) in pop_iter {
         next_pop[age - 1] = *count;
     }
     // Put the original reproducing fish into slot 6, and put an equal number of
