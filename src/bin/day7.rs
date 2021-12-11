@@ -25,12 +25,30 @@ fn part_one(inputs: &str) -> usize {
             }
         }
     }
-    let cheapest_destination = fuel_costs.iter()
-        .fold(usize::MAX, |min, val| cmp::min(min, *val) );
-    let expensivist_destination = fuel_costs.iter()
-        .fold(usize::MIN, |max, val| cmp::max(max, *val) );
-    println!("Cheapest destination: {}\nMost expensive destination: {}", cheapest_destination, expensivist_destination);
-    cheapest_destination
+    let (cheapest_destination, cheapest_cost) = fuel_costs.iter().enumerate().reduce(
+        |min, cur| {
+            match min.1.cmp(cur.1) {
+                cmp::Ordering::Equal => min, // be lazy if dupes
+                cmp::Ordering::Less => min,
+                cmp::Ordering::Greater => cur,
+            }
+        }
+    ).unwrap();
+    let (worst_destination, worst_cost) = fuel_costs.iter().enumerate().reduce(
+        |max, cur| {
+            match max.1.cmp(cur.1) {
+                cmp::Ordering::Equal => max, // be lazy if dupes
+                cmp::Ordering::Less => cur,
+                cmp::Ordering::Greater => max,
+            }
+        }
+    ).unwrap();
+    println!(
+        "Cheapest destination: {} ({} fuel units)\nMost expensive destination: {} ({} fuel units)",
+        cheapest_destination, cheapest_cost,
+        worst_destination, worst_cost,
+    );
+    *cheapest_cost
 }
 
 fn fuel_cost(start: usize, end: usize) -> usize {
