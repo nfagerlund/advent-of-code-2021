@@ -10,7 +10,10 @@ fn main() {
     part_two(&inputs);
 }
 
-fn part_two(_inputs: &str) {}
+fn part_two(inputs: &str) -> usize {
+
+    0
+}
 
 fn part_one(inputs: &str) -> usize {
     let crab_positions = parse_inputs(inputs);
@@ -93,7 +96,7 @@ mod tests {
 
     #[test]
     fn example_part_two() {
-        let answer = ();
+        let answer = 168;
         let result = part_two(EXAMPLE);
         assert_eq!(result, answer);
     }
