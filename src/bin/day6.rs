@@ -37,7 +37,7 @@ fn n_generations_later(pop: Population, generations: usize) -> Population {
     match generations {
         0 => pop,
         1 => the_next_generation(&pop),
-        _ => n_generations_later(pop, generations - 1),
+        _ => n_generations_later(the_next_generation(&pop), generations - 1),
     }
 }
 
