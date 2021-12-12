@@ -76,34 +76,11 @@ fn part_two(inputs: &str) -> usize {
     0
 }
 
-// fn decode_display(mut signals: Vec<String>, mut readout: Vec<String>) -> SevenSegmentDisplay {
-//     // ok, I'm just gonna do this one real dumb-like
-//     let mut readout_arr = [String::new(), String::new(), String::new(), String::new()];
-//         // WOW WHAT THE FUCK?? ^^
-//     for (i, s) in readout.drain(0..4).enumerate() {
-//         readout_arr[i] = s;
-//     }
-//     // at this point readout is consumed.
-//     let mut display = SevenSegmentDisplay {
-//         readout: readout_arr,
-//         digit_signals: HashMap::new(),
-//     };
-
-//     let (one, _) = signals.iter().enumerate().find(|(index, val)| {
-//         val.len() == 2
-//     }).unwrap();
-//     let one_s = signals.remove(one);
-//     display.digit_signals.insert(one_s, 1);
-//     // Wow, hated all of that ^^ I'm definitely fucking something up I think.
-
-//     display
-// }
-
 // Change of plan: I think decoding the segments is technically more computation
 // work than needed, but I'm coming to believe it'll mean less *coding* work.
 // Also, do it immutably, bc fuck what was happening earlier.
 // The comments describing this logic are up around part_two().
-fn decode_segments(signals: &Vec<String>) -> Translator {
+fn decode_segments(signals: &Vec<&str>) -> SegmentTranslator {
     let mut segments: HashMap<char, Segment> = HashMap::new();
     let mut frequencies: HashMap<char, usize> = HashMap::new();
     for signal in signals {
@@ -166,7 +143,7 @@ fn decode_segments(signals: &Vec<String>) -> Translator {
 }
 
 // Ok, onward!
-fn translate_digit(digit_str: &str, translator: &Translator, digit_recognizer: &DigitRecognizer) -> usize {
+fn translate_digit(digit_str: &str, translator: &SegmentTranslator, digit_recognizer: &DigitRecognizer) -> usize {
     let lit_segments: HashSet<Segment> = digit_str.chars()
         .map(|c| { translator[&c] }).collect();
     let (digit, _) = digit_recognizer.iter().find(|(_, segments)| {
@@ -174,8 +151,6 @@ fn translate_digit(digit_str: &str, translator: &Translator, digit_recognizer: &
     }).unwrap();
     *digit
 }
-
-
 
 // How many times do the digits 1, 4, 7, or 8 appear?
 fn part_one(inputs: &str) -> usize {
@@ -296,25 +271,7 @@ fn build_digit_recognizer() -> DigitRecognizer {
     segment_sets
 }
 
-type Translator = HashMap<char, Segment>;
-
-#[derive(Debug)]
-struct SevenSegmentDisplay {
-    digit_signals: HashMap<String, usize>,
-    readout: [String; 4],
-}
-
-impl SevenSegmentDisplay {
-    fn to_number(&self) -> usize {
-        self.digit_signals[&self.readout[0]] * 1000
-        +
-        self.digit_signals[&self.readout[1]] * 100
-        +
-        self.digit_signals[&self.readout[2]] * 10
-        +
-        self.digit_signals[&self.readout[3]]
-    }
-}
+type SegmentTranslator = HashMap<char, Segment>;
 
 fn vec_of_digits_to_decimal(digits: &Vec<usize>) -> usize {
     digits.iter().rev().enumerate().fold(
@@ -326,27 +283,15 @@ fn vec_of_digits_to_decimal(digits: &Vec<usize>) -> usize {
 }
 
 // (signals, digits)
-fn parse_inputs_weirdly(inputs: &str) -> Vec<(Vec<String>, Vec<String>)> {
+fn parse_inputs_weirdly<'a>(inputs: &'a str) -> Vec<(Vec<&'a str>, Vec<&'a str>)> {
     let tuples = parse_inputs_naively(inputs);
-    let vecs_of_sorted_strings: Vec<(Vec<String>, Vec<String>)> = tuples.iter()
+    let vec_of_displays: Vec<(Vec<&str>, Vec<&str>)> = tuples.iter()
         .map(|(ten_signals, four_digits)| {
-            let signals: Vec<String> = ten_signals.split(' ')
-                .map(sort_to_string).collect();
-            let digits: Vec<String> = four_digits.split(' ')
-                .map(sort_to_string).collect();
+            let signals: Vec<&str> = ten_signals.split(' ').collect();
+            let digits: Vec<&str> = four_digits.split(' ').collect();
             (signals, digits)
         }).collect();
-    vecs_of_sorted_strings
-}
-
-fn sort_to_string(s: &str) -> String {
-    let mut chars: Vec<char> = s.chars().collect();
-    chars.sort();
-    let mut result = String::new();
-    for chr in chars {
-        result.push(chr);
-    }
-    result
+    vec_of_displays
 }
 
 #[cfg(test)]
