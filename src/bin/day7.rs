@@ -65,6 +65,7 @@ fn fuel_cost(start: usize, end: usize) -> usize {
 fn amended_fuel_cost(start: usize, end: usize) -> usize {
     let difference = fuel_cost(start, end);
     // s2g there's a name for this operation??? losing my mind here.
+    // edit: it's called summing a series. Σ 🙄
     // 1 -> 1, 2 -> 3, 3 -> 6, 4 -> 10, 5 -> 15, 6 -> 21
     // oh right, there's a long recursive way and a fast cheater way:
     // 2 -> (1 + 2) * 2/2 = 3
