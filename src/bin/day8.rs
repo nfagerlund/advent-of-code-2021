@@ -59,12 +59,20 @@ fn main() {
 fn part_two(inputs: &str) -> usize {
     let mut the_stuff = parse_inputs_weirdly(inputs);
     println!("the stuff is here, showing first one:\n{:#?}", &the_stuff[0]);
+    let digit_recognizer = build_digit_recognizer();
+
     // let (temp_sigs, temp_digits) = the_stuff.swap_remove(0);
     // let temp_disp = decode_display(temp_sigs, temp_digits);
     // println!("Temp display, only partially filled: \n{:#?}", &temp_disp);
     let temp_sigs = &the_stuff[0].0;
     let decoded = decode_segments(temp_sigs);
     println!("OK, here's what I got for that decoded display: \n{:#?}", &decoded);
+    let readout = &the_stuff[0].1;
+    println!("Printing the display contents:");
+    for digit in readout {
+        let real_digit = translate_digit(digit, &decoded, &digit_recognizer);
+        println!("{}", real_digit);
+    }
     0
 }
 
@@ -158,9 +166,13 @@ fn decode_segments(signals: &Vec<String>) -> Translator {
 }
 
 // Ok, onward!
-fn translate_digit(digit_str: &str, translator: Translator) -> usize {
-    initialize_segment_sets(); // idempotent, need it done before looking things up
-
+fn translate_digit(digit_str: &str, translator: &Translator, digit_recognizer: &DigitRecognizer) -> usize {
+    let lit_segments: HashSet<Segment> = digit_str.chars()
+        .map(|c| { translator[&c] }).collect();
+    let (digit, _) = digit_recognizer.iter().find(|(_, segments)| {
+        (*segments).eq(&lit_segments)
+    }).unwrap();
+    *digit
 }
 
 
@@ -188,7 +200,7 @@ fn parse_inputs_naively(inputs: &str) -> Vec<(&str, &str)> {
     inputs.lines().map(|line| line.split_once(" | ").unwrap()).collect()
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 enum Segment {
     Ht,
     Hm,
@@ -202,86 +214,86 @@ enum Segment {
 // Okay, I don't like what I'm about to do here, but I spent long enough trying
 // to think of something nicer.
 // This is the part that's standing in for human vision, basically.
-static SEGMENT_SETS: HashMap<usize, HashSet<Segment>> = HashMap::new();
-fn initialize_segment_sets() {
-    if SEGMENT_SETS.len() == 0 {
-        for i in 0usize..=9 {
-            let mut segments = HashSet::new();
-            match i {
-                0 => {
-                    segments.insert(Segment::Ht);
-                    segments.insert(Segment::Hb);
-                    segments.insert(Segment::Vul);
-                    segments.insert(Segment::Vur);
-                    segments.insert(Segment::Vbl);
-                    segments.insert(Segment::Vbr);
-                },
-                1 => {
-                    segments.insert(Segment::Vur);
-                    segments.insert(Segment::Vbr);
-                },
-                2 => {
-                    segments.insert(Segment::Ht);
-                    segments.insert(Segment::Hm);
-                    segments.insert(Segment::Hb);
-                    segments.insert(Segment::Vur);
-                    segments.insert(Segment::Vbl);
-                },
-                3 => {
-                    segments.insert(Segment::Ht);
-                    segments.insert(Segment::Hm);
-                    segments.insert(Segment::Hb);
-                    segments.insert(Segment::Vur);
-                    segments.insert(Segment::Vbr);
-                },
-                4 => {
-                    segments.insert(Segment::Hm);
-                    segments.insert(Segment::Vul);
-                    segments.insert(Segment::Vur);
-                    segments.insert(Segment::Vbr);
-                },
-                5 => {
-                    segments.insert(Segment::Ht);
-                    segments.insert(Segment::Hm);
-                    segments.insert(Segment::Hb);
-                    segments.insert(Segment::Vul);
-                    segments.insert(Segment::Vbr);
-                },
-                6 => {
-                    segments.insert(Segment::Ht);
-                    segments.insert(Segment::Hm);
-                    segments.insert(Segment::Hb);
-                    segments.insert(Segment::Vul);
-                    segments.insert(Segment::Vbl);
-                    segments.insert(Segment::Vbr);
-                },
-                7 => {
-                    segments.insert(Segment::Ht);
-                    segments.insert(Segment::Vur);
-                    segments.insert(Segment::Vbr);
-                },
-                8 => {
-                    segments.insert(Segment::Ht);
-                    segments.insert(Segment::Hm);
-                    segments.insert(Segment::Hb);
-                    segments.insert(Segment::Vur);
-                    segments.insert(Segment::Vul);
-                    segments.insert(Segment::Vbr);
-                    segments.insert(Segment::Vbl);
-                },
-                9 => {
-                    segments.insert(Segment::Ht);
-                    segments.insert(Segment::Hm);
-                    segments.insert(Segment::Hb);
-                    segments.insert(Segment::Vul);
-                    segments.insert(Segment::Vur);
-                    segments.insert(Segment::Vbr);
-                },
-            }
-            SEGMENT_SETS.insert(i, segments);
+type DigitRecognizer = HashMap<usize, HashSet<Segment>>;
+fn build_digit_recognizer() -> DigitRecognizer {
+    let mut segment_sets = HashMap::new();
+    for i in 0usize..=9 {
+        let mut segments = HashSet::new();
+        match i {
+            0 => {
+                segments.insert(Segment::Ht);
+                segments.insert(Segment::Hb);
+                segments.insert(Segment::Vul);
+                segments.insert(Segment::Vur);
+                segments.insert(Segment::Vbl);
+                segments.insert(Segment::Vbr);
+            },
+            1 => {
+                segments.insert(Segment::Vur);
+                segments.insert(Segment::Vbr);
+            },
+            2 => {
+                segments.insert(Segment::Ht);
+                segments.insert(Segment::Hm);
+                segments.insert(Segment::Hb);
+                segments.insert(Segment::Vur);
+                segments.insert(Segment::Vbl);
+            },
+            3 => {
+                segments.insert(Segment::Ht);
+                segments.insert(Segment::Hm);
+                segments.insert(Segment::Hb);
+                segments.insert(Segment::Vur);
+                segments.insert(Segment::Vbr);
+            },
+            4 => {
+                segments.insert(Segment::Hm);
+                segments.insert(Segment::Vul);
+                segments.insert(Segment::Vur);
+                segments.insert(Segment::Vbr);
+            },
+            5 => {
+                segments.insert(Segment::Ht);
+                segments.insert(Segment::Hm);
+                segments.insert(Segment::Hb);
+                segments.insert(Segment::Vul);
+                segments.insert(Segment::Vbr);
+            },
+            6 => {
+                segments.insert(Segment::Ht);
+                segments.insert(Segment::Hm);
+                segments.insert(Segment::Hb);
+                segments.insert(Segment::Vul);
+                segments.insert(Segment::Vbl);
+                segments.insert(Segment::Vbr);
+            },
+            7 => {
+                segments.insert(Segment::Ht);
+                segments.insert(Segment::Vur);
+                segments.insert(Segment::Vbr);
+            },
+            8 => {
+                segments.insert(Segment::Ht);
+                segments.insert(Segment::Hm);
+                segments.insert(Segment::Hb);
+                segments.insert(Segment::Vur);
+                segments.insert(Segment::Vul);
+                segments.insert(Segment::Vbr);
+                segments.insert(Segment::Vbl);
+            },
+            9 => {
+                segments.insert(Segment::Ht);
+                segments.insert(Segment::Hm);
+                segments.insert(Segment::Hb);
+                segments.insert(Segment::Vul);
+                segments.insert(Segment::Vur);
+                segments.insert(Segment::Vbr);
+            },
+            _ => { panic!("hey wtf") },
         }
-
+        segment_sets.insert(i, segments);
     }
+    segment_sets
 }
 
 type Translator = HashMap<char, Segment>;
