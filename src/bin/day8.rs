@@ -55,36 +55,106 @@ fn main() {
 // For the final vertical, c (vur, x8): it and f are the only segments present in 1. So that's all them.
 // There's only one other x8, so that's a (ht).
 // d (hm) is the only horizontal segment that's absent from a six-segment digit. and g (hb) is whatever's left.
+// No wait, I have an easier way to get d (hm). Find the 4-length signal, and find the segment that isn't claimed by the verticals.
 fn part_two(inputs: &str) -> usize {
     let mut the_stuff = parse_inputs_weirdly(inputs);
-    println!("the stuff is here\n{:#?}", &the_stuff);
-    let (temp_sigs, temp_digits) = the_stuff.swap_remove(0);
-    let temp_disp = decode_display(temp_sigs, temp_digits);
-    println!("Temp display, only partially filled: \n{:#?}", &temp_disp);
+    println!("the stuff is here, showing first one:\n{:#?}", &the_stuff[0]);
+    // let (temp_sigs, temp_digits) = the_stuff.swap_remove(0);
+    // let temp_disp = decode_display(temp_sigs, temp_digits);
+    // println!("Temp display, only partially filled: \n{:#?}", &temp_disp);
+    let temp_sigs = &the_stuff[0].0;
+    let decoded = decode_segments(temp_sigs);
+    println!("OK, here's what I got for that decoded display: \n{:#?}", &decoded);
     0
 }
 
-fn decode_display(mut signals: Vec<String>, mut readout: Vec<String>) -> SevenSegmentDisplay {
-    // ok, I'm just gonna do this one real dumb-like
-    let mut readout_arr = [String::new(), String::new(), String::new(), String::new()];
-        // WOW WHAT THE FUCK?? ^^
-    for (i, s) in readout.drain(0..4).enumerate() {
-        readout_arr[i] = s;
+// fn decode_display(mut signals: Vec<String>, mut readout: Vec<String>) -> SevenSegmentDisplay {
+//     // ok, I'm just gonna do this one real dumb-like
+//     let mut readout_arr = [String::new(), String::new(), String::new(), String::new()];
+//         // WOW WHAT THE FUCK?? ^^
+//     for (i, s) in readout.drain(0..4).enumerate() {
+//         readout_arr[i] = s;
+//     }
+//     // at this point readout is consumed.
+//     let mut display = SevenSegmentDisplay {
+//         readout: readout_arr,
+//         digit_signals: HashMap::new(),
+//     };
+
+//     let (one, _) = signals.iter().enumerate().find(|(index, val)| {
+//         val.len() == 2
+//     }).unwrap();
+//     let one_s = signals.remove(one);
+//     display.digit_signals.insert(one_s, 1);
+//     // Wow, hated all of that ^^ I'm definitely fucking something up I think.
+
+//     display
+// }
+
+// Change of plan: I think decoding the segments is technically more computation
+// work than needed, but I'm coming to believe it'll mean less *coding* work.
+// Also, do it immutably, bc fuck what was happening earlier.
+// The comments describing this logic are up around part_two().
+fn decode_segments(signals: &Vec<String>) -> HashMap<char, Segment> {
+    let mut segments: HashMap<char, Segment> = HashMap::new();
+    let mut frequencies: HashMap<char, usize> = HashMap::new();
+    for signal in signals {
+        for c in signal.chars() {
+            let freq = frequencies.entry(c).or_insert(0);
+            *freq += 1;
+        }
     }
-    // at this point readout is consumed.
-    let mut display = SevenSegmentDisplay {
-        readout: readout_arr,
-        digit_signals: HashMap::new(),
-    };
+    // Easy buckets first
+    for (c, freq) in &frequencies {
+        match *freq {
+            9 => { segments.insert(*c, Segment::Vbr); },
+            4 => { segments.insert(*c, Segment::Vbl); },
+            6 => { segments.insert(*c, Segment::Vul); },
+            _ => {},
+        }
+    }
+    // Then that last vertical
+    for signal in signals {
+        if signal.len() == 2 {
+            // it's the "1"
+            for c in signal.chars() {
+                if !segments.contains_key(&c) {
+                    // then it's not Vbr (which is already stored), and must be Vur
+                    segments.insert(c, Segment::Vur);
+                }
+            }
+        }
+    }
+    // Then the top
+    for (c, freq) in &frequencies {
+        match *freq {
+            8 => {
+                if !segments.contains_key(c) {
+                    // then it's not Vur and must be Ht
+                    segments.insert(*c, Segment::Ht);
+                }
+            },
+            _ => {},
+        }
+    }
+    // Then the middle
+    for signal in signals {
+        if signal.len() == 4 {
+            for c in signal.chars() {
+                if !segments.contains_key(&c) {
+                    segments.insert(c, Segment::Hm);
+                }
+            }
+        }
+    }
+    // Then the bottom is all that's left
+    for (c, _) in frequencies {
+        if !segments.contains_key(&c) {
+            segments.insert(c, Segment::Hb);
+        }
+    }
 
-    let (one, _) = signals.iter().enumerate().find(|(index, val)| {
-        val.len() == 2
-    }).unwrap();
-    let one_s = signals.remove(one);
-    display.digit_signals.insert(one_s, 1);
-    // Wow, hated all of that ^^ I'm definitely fucking something up I think.
-
-    display
+    segments
 }
 
 // How many times do the digits 1, 4, 7, or 8 appear?
@@ -110,6 +180,7 @@ fn parse_inputs_naively(inputs: &str) -> Vec<(&str, &str)> {
     inputs.lines().map(|line| line.split_once(" | ").unwrap()).collect()
 }
 
+#[derive(Debug)]
 enum Segment {
     Ht,
     Hm,
