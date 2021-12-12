@@ -56,9 +56,35 @@ fn main() {
 // There's only one other x8, so that's a (ht).
 // d (hm) is the only horizontal segment that's absent from a six-segment digit. and g (hb) is whatever's left.
 fn part_two(inputs: &str) -> usize {
-    let the_stuff = parse_inputs_weirdly(inputs);
+    let mut the_stuff = parse_inputs_weirdly(inputs);
     println!("the stuff is here\n{:#?}", &the_stuff);
+    let (temp_sigs, temp_digits) = the_stuff.swap_remove(0);
+    let temp_disp = decode_display(temp_sigs, temp_digits);
+    println!("Temp display, only partially filled: \n{:#?}", &temp_disp);
     0
+}
+
+fn decode_display(mut signals: Vec<String>, mut readout: Vec<String>) -> SevenSegmentDisplay {
+    // ok, I'm just gonna do this one real dumb-like
+    let mut readout_arr = [String::new(), String::new(), String::new(), String::new()];
+        // WOW WHAT THE FUCK?? ^^
+    for (i, s) in readout.drain(0..4).enumerate() {
+        readout_arr[i] = s;
+    }
+    // at this point readout is consumed.
+    let mut display = SevenSegmentDisplay {
+        readout: readout_arr,
+        digit_signals: HashMap::new(),
+    };
+
+    let (one, _) = signals.iter().enumerate().find(|(index, val)| {
+        val.len() == 2
+    }).unwrap();
+    let one_s = signals.remove(one);
+    display.digit_signals.insert(one_s, 1);
+    // Wow, hated all of that ^^ I'm definitely fucking something up I think.
+
+    display
 }
 
 // How many times do the digits 1, 4, 7, or 8 appear?
@@ -95,12 +121,13 @@ enum Segment {
     Unknown,
 }
 
-struct Display {
+#[derive(Debug)]
+struct SevenSegmentDisplay {
     digit_signals: HashMap<String, usize>,
     readout: [String; 4],
 }
 
-impl Display {
+impl SevenSegmentDisplay {
     fn to_number(&self) -> usize {
         self.digit_signals[&self.readout[0]] * 1000
         +
@@ -112,6 +139,7 @@ impl Display {
     }
 }
 
+// (signals, digits)
 fn parse_inputs_weirdly(inputs: &str) -> Vec<(Vec<String>, Vec<String>)> {
     let tuples = parse_inputs_naively(inputs);
     let vecs_of_sorted_strings: Vec<(Vec<String>, Vec<String>)> = tuples.iter()
