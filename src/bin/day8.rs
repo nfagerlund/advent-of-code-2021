@@ -25,8 +25,24 @@ fn part_two(_inputs: &str) {}
 
 // How many times do the digits 1, 4, 7, or 8 appear?
 fn part_one(inputs: &str) -> usize {
+    let mut easy_buckets: usize = 0;
+    let badly_parsed_inputs = parse_inputs_naively(inputs);
+    for display in badly_parsed_inputs {
+        let four_digits = display.1;
+        for digit in four_digits.split(' ') {
+            match digit.len() { // just using ascii length, because.
+                2 | 4 | 3 | 7 => easy_buckets += 1,
+                _ => (),
+            }
+        }
+    }
+    easy_buckets
+}
 
-    0
+// uhhhhhh
+// fuck it. (ten_signals, four_digits).
+fn parse_inputs_naively(inputs: &str) -> Vec<(&str, &str)> {
+    inputs.lines().map(|line| line.split_once(" | ").unwrap()).collect()
 }
 
 #[cfg(test)]
