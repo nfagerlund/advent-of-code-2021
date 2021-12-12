@@ -57,23 +57,26 @@ fn main() {
 // d (hm) is the only horizontal segment that's absent from a six-segment digit. and g (hb) is whatever's left.
 // No wait, I have an easier way to get d (hm). Find the 4-length signal, and find the segment that isn't claimed by the verticals.
 fn part_two(inputs: &str) -> usize {
-    let mut the_stuff = parse_inputs_weirdly(inputs);
+    let the_stuff = parse_inputs_weirdly(inputs);
     println!("the stuff is here, showing first one:\n{:#?}", &the_stuff[0]);
     let digit_recognizer = build_digit_recognizer();
 
-    // let (temp_sigs, temp_digits) = the_stuff.swap_remove(0);
-    // let temp_disp = decode_display(temp_sigs, temp_digits);
-    // println!("Temp display, only partially filled: \n{:#?}", &temp_disp);
-    let temp_sigs = &the_stuff[0].0;
-    let decoded = decode_segments(temp_sigs);
-    println!("OK, here's what I got for that decoded display: \n{:#?}", &decoded);
-    let readout = &the_stuff[0].1;
-    println!("Printing the display contents:");
-    for digit in readout {
-        let real_digit = translate_digit(digit, &decoded, &digit_recognizer);
-        println!("{}", real_digit);
-    }
-    0
+    let vec_of_usize_display_values: Vec<usize> = the_stuff.iter().map(
+        |(unique_signals, readout)| {
+            let segment_translator = decode_segments(unique_signals);
+            let vec_of_digits: Vec<usize> = readout.iter().map(|&digit_str| {
+                translate_digit(digit_str, &segment_translator, &digit_recognizer)
+            }).collect();
+            let usize_display_value = vec_of_digits_to_decimal(&vec_of_digits);
+            usize_display_value
+        }
+    ).collect();
+
+    let sum_of_displays = vec_of_usize_display_values.iter().fold(0usize, |accum, val| {
+        accum + *val
+    });
+    println!("Sum of all decoded displays: {}", sum_of_displays);
+    sum_of_displays
 }
 
 // Change of plan: I think decoding the segments is technically more computation
