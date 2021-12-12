@@ -36,6 +36,7 @@ fn part_one(inputs: &str) -> usize {
             }
         }
     }
+    println!("# of appearances of 1, 4, 7, or 8: {}", easy_buckets);
     easy_buckets
 }
 
