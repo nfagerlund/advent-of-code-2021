@@ -14,6 +14,42 @@ fn part_one(inputs: &str) -> usize {
     0
 }
 
+// OK, I think I see where we're going here!
+type Tile = (usize, usize);
+struct Grid {
+    data: Vec<Vec<usize>>, // vec of rows
+}
+
+impl Grid {
+    fn height(&self) -> usize { self.data.len() }
+    // Constructor is in charge of not giving us inconsistent widths!
+    fn width(&self) -> usize { self.data[0].len() }
+
+    fn get_tile_height(&self, tile: Tile) -> Option<usize> {
+        let (x, y) = tile;
+        match self.data.get(y) { // row
+            None => None,
+            Some(row) => {
+                match row.get(x) {
+                    None => None,
+                    Some(&height) => Some(height),
+                }
+            },
+        }
+    }
+
+    fn get_neighbor_heights(&self, tile: Tile) -> Vec<Option<usize>> {
+        let (x, y) = tile;
+        vec![
+            self.get_tile_height((x - 1, y)),
+            self.get_tile_height((x + 1, y)),
+            self.get_tile_height((x, y - 1)),
+            self.get_tile_height((x, y + 1)),
+        ]
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
