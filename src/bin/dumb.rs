@@ -29,4 +29,5 @@ fn main() {
     println!("first == second: {}", first == second);
     println!("first == third: {}", first == third);
         // what I learned: HashSet implements equality like I'd expect.
+    println!("pow!! {}", 10usize.pow(0));
 }
