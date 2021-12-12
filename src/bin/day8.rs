@@ -316,6 +316,15 @@ impl SevenSegmentDisplay {
     }
 }
 
+fn vec_of_digits_to_decimal(digits: &Vec<usize>) -> usize {
+    digits.iter().rev().enumerate().fold(
+        0,
+        |sum, (i, &val)| {
+            sum + (val * 10usize.pow(i as u32))
+        }
+    )
+}
+
 // (signals, digits)
 fn parse_inputs_weirdly(inputs: &str) -> Vec<(Vec<String>, Vec<String>)> {
     let tuples = parse_inputs_naively(inputs);
