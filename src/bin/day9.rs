@@ -19,8 +19,8 @@ fn part_one(inputs: &str) -> usize {
             let tile = (x, y);
             if grid.tile_is_low_point(tile) {
                 let height = grid.get_tile_height(tile).unwrap();
-                let neighbors = grid.get_neighbor_heights(tile);
-                println!("Got a low point! ({},{}) => {}\n    neighbors: {:?}", x, y, height, neighbors);
+                // let neighbors = grid.get_neighbor_heights(tile);
+                // println!("Got a low point! ({},{}) => {}\n    neighbors: {:?}", x, y, height, neighbors);
                 let risk_level = height + 1;
                 total += risk_level;
             }
