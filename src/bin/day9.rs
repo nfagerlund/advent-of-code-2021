@@ -85,7 +85,7 @@ impl Grid {
         let tile_height = tile_height.unwrap();
         for maybe_neighbor in neighbor_heights {
             if let Some(neighbor) = maybe_neighbor {
-                if tile_height > neighbor {
+                if tile_height >= neighbor {
                     return false;
                 }
             }
