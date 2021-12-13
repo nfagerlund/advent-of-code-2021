@@ -41,4 +41,5 @@ fn main() {
     sorted.sort();
     let summed: usize = sorted.iter().rev().take(3).sum();
     println!("sum: {}", summed);
+    println!("5/2 = {}", 5usize / 2); // integer division - 5/2 = 2.
 }
