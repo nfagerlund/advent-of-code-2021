@@ -10,6 +10,8 @@ fn main() {
 fn part_two(inputs: &str) {}
 
 fn part_one(inputs: &str) -> usize {
+    let grid = parse_inputs(inputs);
+    println!("The stuff is here. First row: \n{:?}", &grid.data[0]);
 
     0
 }
@@ -17,7 +19,7 @@ fn part_one(inputs: &str) -> usize {
 // OK, I think I see where we're going here!
 type Tile = (usize, usize);
 struct Grid {
-    data: Vec<Vec<usize>>, // vec of rows
+    pub data: Vec<Vec<usize>>, // vec of rows
 }
 
 impl Grid {
@@ -47,6 +49,16 @@ impl Grid {
             self.get_tile_height((x, y + 1)),
         ]
     }
+
+}
+
+fn parse_inputs(inputs: &str) -> Grid {
+    let data: Vec<Vec<usize>> = inputs.lines().map(|line| {
+        line.chars().map(|c| {
+            c.to_digit(10).unwrap() as usize
+        }).collect()
+    }).collect();
+    Grid { data }
 }
 
 
