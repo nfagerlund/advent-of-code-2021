@@ -32,7 +32,7 @@ fn glow_example() {
 // https://github.com/alisww/easycurses-rs/blob/master/examples/hello.rs
 // ... ^^ this hasn't been updated since 2017 and is out of date w/ current impl.
 // but still helpful!
-fn hello_example() {
+fn _hello_example() {
     let mut curse = EasyCurses::initialize_system().unwrap();
     curse.set_cursor_visibility(CursorVisibility::Invisible);
     curse.set_echo(false);
