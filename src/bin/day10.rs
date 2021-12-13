@@ -11,15 +11,85 @@ fn part_two(_inputs: &str) {}
 
 // find first illegal delimiter on each line (if present), give it a score, and
 // total the scores.
+// All right, I have a sneaking suspicion that ANY optimization on this one is premature.
+// Let's just use a stack and holler when we pop off something bad.
 fn part_one(inputs: &str) -> usize {
+    let total_score = inputs.lines().map(score_corrupted_line).fold(
+        0usize,
+        |total, maybe_score| {
+            let score = match maybe_score {
+                None => 0,
+                Some(n) => n,
+            };
+            total + score
+        }
+    );
+    println!("total score: {}", total_score);
+    total_score
+}
 
-    0
+fn score_corrupted_line(line: &str) -> Option<usize> {
+    let mut stack: Vec<char> = Vec::new();
+    for ch in line.chars() {
+        if is_opener(ch) {
+            stack.push(ch);
+        } else if is_closer(ch) {
+            let opener = stack.pop();
+            match opener {
+                None => {
+                    // A closer with no opener.
+                    return Some(punish_me_daddy(ch));
+                },
+                Some(opener) => {
+                    if !delimiters_are_matching(opener, ch) {
+                        // A closer with the wrong opener.
+                        return Some(punish_me_daddy(ch))
+                    }
+                },
+            }
+        } else {
+            panic!("oops, unexpected input");
+        }
+        // OK, this char was fine! keep going.
+    }
+
+    None
+}
+
+fn is_opener(ch: char) -> bool {
+    match ch {
+        '(' | '[' | '{' | '<' => true,
+        _ => false,
+    }
+}
+fn is_closer(ch: char) -> bool {
+    match ch {
+        ')' | ']' | '}' | '>' => true,
+        _ => false,
+    }
 }
 
 const BAD_PAREN: usize = 3;
 const BAD_SQUARE: usize = 57;
 const BAD_CURLY: usize = 1197;
 const BAD_ANGLE: usize = 25137;
+
+fn delimiters_are_matching(op: char, cl: char) -> bool {
+    (op == '(' && cl == ')')
+    || (op == '[' && cl == ']')
+    || (op == '{' && cl == '}')
+    || (op == '<' && cl == '>')
+}
+
+fn punish_me_daddy(badness: char) -> usize {
+    match badness {
+        ')' => BAD_PAREN,
+        ']' => BAD_SQUARE,
+        '}' => BAD_CURLY,
+        '>' => BAD_ANGLE,
+        _ => panic!("Oops, wyd"),
+    }
+}
 
 #[cfg(test)]
 mod tests {
