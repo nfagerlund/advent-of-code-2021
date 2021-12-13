@@ -21,7 +21,9 @@ fn part_two(inputs: &str) -> usize {
     valid_scores.sort();
     println!("Got some completion scores: \n{:?}", &valid_scores);
     if valid_scores.len() % 2 != 1 { panic!("just checking!"); }
-    let median_score = valid_scores[ valid_scores.len() / 2 + 1 ];
+    // integer division floors the result, but bc collections are 0-indexed that
+    // ends up being the right index to use.
+    let median_score = valid_scores[ valid_scores.len() / 2 ];
     println!("Median score is {}", median_score);
     median_score
 }
@@ -81,7 +83,7 @@ fn build_completion_string(line: &str) -> Option<String> {
     // any "resolved" pairs snipped out. So... g2g~!
     let mut completions = String::new();
     while let Some(ch) = stack.pop() {
-        completions.push(ch);
+        completions.push(closer_for(ch));
     }
     Some(completions)
 }
@@ -146,6 +148,16 @@ fn pay_me(work: char) -> usize {
         '}' => 3,
         '>' => 4,
         _ => panic!("come ON,"),
+    }
+}
+
+fn closer_for(opener: char) -> char {
+    match opener {
+        '(' => ')',
+        '[' => ']',
+        '{' => '}',
+        '<' => '>',
+        _ => panic!("oops, nope"),
     }
 }
 
