@@ -64,7 +64,8 @@ impl Grid {
         }
     }
 
-    fn get_neighbor_heights(&self, tile: Tile) -> Vec<Option<usize>> {
+    // get coords
+    fn get_neighbor_tiles(&self, tile: Tile) -> Vec<Option<Tile>> {
         let (x, y) = tile;
         vec![
             // Need to do some goofy bounds checking so we don't wrap around to
@@ -72,15 +73,33 @@ impl Grid {
             // (which, btw, panics in dev builds, which is very nice.)
             match x.checked_sub(1) {
                 None => None,
-                Some(less_x) => self.get_tile_height((less_x, y)),
+                Some(less_x) => Some((less_x, y)),
             },
             match y.checked_sub(1) {
                 None => None,
-                Some(less_y) => self.get_tile_height((x, less_y)),
+                Some(less_y) => Some((x, less_y)),
             },
-            self.get_tile_height((x + 1, y)),
-            self.get_tile_height((x, y + 1)),
+            // Then gotta make sure we don't go past the outer edge:
+            if x + 1 < self.width() {
+                Some((x + 1, y))
+            } else {
+                None
+            },
+            if y + 1 < self.height() {
+                Some((x, y + 1))
+            } else {
+                None
+            },
         ]
+    }
+
+    fn get_neighbor_heights(&self, tile: Tile) -> Vec<Option<usize>> {
+        self.get_neighbor_tiles(tile).iter().map(|&neighbor| {
+            match neighbor {
+                None => None,
+                Some(tile) => self.get_tile_height(tile),
+            }
+        }).collect()
     }
 
     fn tile_is_low_point(&self, tile: Tile) -> bool {
