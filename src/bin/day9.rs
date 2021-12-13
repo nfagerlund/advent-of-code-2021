@@ -7,13 +7,25 @@ fn main() {
     part_two(&inputs);
 }
 
-fn part_two(inputs: &str) {}
+fn part_two(_inputs: &str) {}
 
 fn part_one(inputs: &str) -> usize {
     let grid = parse_inputs(inputs);
     println!("The stuff is here. First row: \n{:?}", &grid.data[0]);
+    // just uh... check all tiles! And add them to a running total!
+    let mut total: usize = 0;
+    for y in 0..grid.height() {
+        for x in 0..grid.width() {
+            let tile = (x, y);
+            if grid.tile_is_low_point(tile) {
+                total += grid.get_tile_height(tile).unwrap();
+            }
+        }
+    }
 
-    0
+    println!("Total height of all low points: {}", total);
+
+    total
 }
 
 // OK, I think I see where we're going here!
@@ -50,6 +62,23 @@ impl Grid {
         ]
     }
 
+    fn tile_is_low_point(&self, tile: Tile) -> bool {
+        let tile_height = self.get_tile_height(tile);
+        let neighbor_heights = self.get_neighbor_heights(tile);
+        // right, first off,
+        if let None = tile_height {
+            return false;
+        }
+        let tile_height = tile_height.unwrap();
+        for maybe_neighbor in neighbor_heights {
+            if let Some(neighbor) = maybe_neighbor {
+                if tile_height > neighbor {
+                    return false;
+                }
+            }
+        }
+        true
+    }
 }
 
 fn parse_inputs(inputs: &str) -> Grid {
