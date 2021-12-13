@@ -2,7 +2,31 @@ use easycurses::*;
 // https://docs.rs/easycurses/0.13.0/easycurses/struct.EasyCurses.html
 
 fn main() {
-    hello_example();
+    // hello_example();
+    glow_example();
+}
+
+fn glow_example() {
+    let mut curse = EasyCurses::initialize_system().unwrap();
+    curse.set_cursor_visibility(CursorVisibility::Invisible);
+    curse.set_echo(false);
+
+    let lit = || ColorPair::new(Color::Cyan, Color::Black);
+    let unlit = || ColorPair::new(Color::Blue, Color::Black);
+    let line = vec![1, 1, 1, 0, 0, 1, 1, 1];
+    for row in 0..9 {
+        for (col, &val) in line.iter().enumerate() {
+            curse.move_rc(row, col as i32);
+            if val == 0 {
+                curse.set_color_pair(lit());
+            } else {
+                curse.set_color_pair(unlit());
+            }
+            curse.print_char(std::char::from_digit(val, 10).unwrap());
+        }
+    }
+    curse.refresh();
+    curse.get_input();
 }
 
 // https://github.com/alisww/easycurses-rs/blob/master/examples/hello.rs
