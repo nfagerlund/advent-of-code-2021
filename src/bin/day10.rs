@@ -12,8 +12,18 @@ fn main() {
 // _middle_ completion score (apparently there will definitely be an odd
 // number).
 fn part_two(inputs: &str) -> usize {
-
-    0
+    let mut valid_scores: Vec<usize> = Vec::new();
+    for line in inputs.lines() {
+        if let Some(completion) = build_completion_string(line) {
+            valid_scores.push(score_completion_string(&completion));
+        }
+    }
+    valid_scores.sort();
+    println!("Got some completion scores: \n{:?}", &valid_scores);
+    if valid_scores.len() % 2 != 1 { panic!("just checking!"); }
+    let median_score = valid_scores[ valid_scores.len() / 2 + 1 ];
+    println!("Median score is {}", median_score);
+    median_score
 }
 
 // find first illegal delimiter on each line (if present), give it a score, and
