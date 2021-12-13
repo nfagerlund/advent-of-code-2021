@@ -18,7 +18,10 @@ fn part_one(inputs: &str) -> usize {
         for x in 0..grid.width() {
             let tile = (x, y);
             if grid.tile_is_low_point(tile) {
-                total += grid.get_tile_height(tile).unwrap();
+                let height = grid.get_tile_height(tile).unwrap();
+                println!("Got a low point! ({},{}) => {}", x, y, height);
+                let risk_level = height + 1;
+                total += risk_level;
             }
         }
     }
@@ -55,9 +58,18 @@ impl Grid {
     fn get_neighbor_heights(&self, tile: Tile) -> Vec<Option<usize>> {
         let (x, y) = tile;
         vec![
-            self.get_tile_height((x - 1, y)),
+            // Need to do some goofy bounds checking so we don't wrap around to
+            // usize::MAX by doing 0_usize - 1:
+            // (which, btw, panics in dev builds, which is very nice.)
+            match x.checked_sub(1) {
+                None => None,
+                Some(less_x) => self.get_tile_height((less_x, y)),
+            },
+            match y.checked_sub(1) {
+                None => None,
+                Some(less_y) => self.get_tile_height((x, less_y)),
+            },
             self.get_tile_height((x + 1, y)),
-            self.get_tile_height((x, y - 1)),
             self.get_tile_height((x, y + 1)),
         ]
     }
