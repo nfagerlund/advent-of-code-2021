@@ -41,6 +41,41 @@ fn score_completion_string(completion: &str) -> usize {
     })
 }
 
+// None means it was a corrupted line.
+fn build_completion_string(line: &str) -> Option<String> {
+    let mut stack: Vec<char> = Vec::new();
+    for ch in line.chars() {
+        if is_opener(ch) {
+            stack.push(ch);
+        } else if is_closer(ch) {
+            let opener = stack.pop();
+            match opener {
+                None => { return None; },
+                Some(opener) => {
+                    if !delimiters_are_matching(opener, ch) {
+                        return None;
+                    }
+                }
+            }
+        } else {
+            panic!("shouldn't happen.");
+        }
+    }
+    // At this point, we have some remaining ... stuff. Oh, and we don't need to
+    // handle the "nothing's fucked" case, if we're feeling lazy, bc the puzzle
+    // setup guarantees we're good to go.
+
+    // Oh! Wait! It should ONLY be opening brackets left, because we should have
+    // popped matching openers off every time we hit a closer. So the remaining
+    // stuff actually doesn't resemble the string we initially got -- it's got
+    // any "resolved" pairs snipped out. So... g2g~!
+    let mut completions = String::new();
+    while let Some(ch) = stack.pop() {
+        completions.push(ch);
+    }
+    Some(completions)
+}
+
 fn score_corrupted_line(line: &str) -> Option<usize> {
     let mut stack: Vec<char> = Vec::new();
     for ch in line.chars() {
