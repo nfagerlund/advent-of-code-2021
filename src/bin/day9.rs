@@ -7,8 +7,13 @@ fn main() {
     part_two(&inputs);
 }
 
-fn part_two(_inputs: &str) {}
+// Sizes of the three largest basins, multiplied together.
+fn part_two(inputs: &str) -> usize {
 
+    0
+}
+
+// (all low points).map(+1).sum()
 fn part_one(inputs: &str) -> usize {
     let grid = parse_inputs(inputs);
     println!("The stuff is here. First row: \n{:?}", &grid.data[0]);
@@ -123,7 +128,7 @@ mod tests {
 
     #[test]
     fn example_part_two() {
-        let answer = ();
+        let answer = 1134;
         let result = part_two(EXAMPLE);
         assert_eq!(result, answer);
     }
