@@ -36,4 +36,9 @@ fn main() {
     let mut mappy = HashMap::new();
     mappy.insert((3,4), 12);
     println!("here's mappy: {:?}", &mappy);
+
+    let mut sorted = vec![1, 2, 3, 4];
+    sorted.sort();
+    let summed: usize = sorted.iter().rev().take(3).sum();
+    println!("sum: {}", summed);
 }
