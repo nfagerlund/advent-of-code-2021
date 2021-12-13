@@ -36,12 +36,9 @@ fn part_one(inputs: &str) -> usize {
 }
 
 fn score_completion_string(completion: &str) -> usize {
-    let mut score = 0usize;
-    for c in completion.chars() {
-        let value = pay_me(c);
-        score = score * 5 + value;
-    }
-    score
+    completion.chars().fold(0usize, |score, c| {
+        score * 5 + pay_me(c)
+    })
 }
 
 fn score_corrupted_line(line: &str) -> Option<usize> {
