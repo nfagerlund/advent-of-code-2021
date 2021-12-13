@@ -1,3 +1,4 @@
+use std::collections::{HashSet, HashMap};
 use advent21::*;
 
 // The one with the smoke seeking low points.
@@ -12,8 +13,27 @@ fn main() {
 // locations), sort them, reverse and take three.
 // Only question is whether we can use a tuple as a hash key...
 fn part_two(inputs: &str) -> usize {
+    let grid = parse_inputs(inputs);
+    let mut basins: HashMap<Tile, usize> = HashMap::new();
+    for y in 0..grid.height() {
+        for x in 0..grid.width() {
+            let tile = (x, y);
+            match grid.get_basin_size(tile) {
+                None => (),
+                Some(size) => {
+                    basins.insert(tile, size);
+                },
+            }
+        }
+    }
+    println!("Found {} basins: \n{:?}", basins.len(), &basins);
+    let mut sizes: Vec<usize> = basins.values().map(|n| *n).collect();
+    sizes.sort();
+    let product_of_top_three: usize = sizes.iter().rev().take(3)
+        .fold(1usize, |acc, val| acc * *val);
+    println!("Product of three biggest basin sizes: {}", product_of_top_three);
 
-    0
+    product_of_top_three
 }
 
 // (all low points).map(+1).sum()
@@ -118,6 +138,39 @@ impl Grid {
             }
         }
         true
+    }
+
+    // this void function mutates its hashset parameter. definitely not threadsafe.
+    fn recursively_traverse_basin(&self, tile: Tile, basin: &mut HashSet<Tile>) {
+        // Only process tiles we haven't processed before:
+        if !basin.contains(&tile) {
+            // basins stop at 9s:
+            if let Some(height) = self.get_tile_height(tile) {
+                if height < 9 {
+                    // ok, this tile is in the basin!
+                    basin.insert(tile);
+                    // maybe its neighbors are too? guess we'll find out.
+                    for neighbor in self.get_neighbor_tiles(tile) {
+                        if let Some(neighbor) = neighbor {
+                            self.recursively_traverse_basin(neighbor, basin);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Return None if the tile isn't a low point. If it is, map its basin.
+    fn get_basin_size(&self, tile: Tile) -> Option<usize> {
+        if self.tile_is_low_point(tile) {
+            // Oh! I think we can use a set!
+            let mut basin: HashSet<Tile> = HashSet::new();
+            self.recursively_traverse_basin(tile, &mut basin);
+            // And now we have a set of tiles, whose size is:
+            Some(basin.len())
+        } else {
+            None
+        }
     }
 }
 
