@@ -7,7 +7,14 @@ fn main() {
     part_two(&inputs);
 }
 
-fn part_two(_inputs: &str) {}
+// huck any corrupted lines, close any unclosed delimiters in correct order for
+// each incomplete line and calculate the completion score, then pick the
+// _middle_ completion score (apparently there will definitely be an odd
+// number).
+fn part_two(inputs: &str) -> usize {
+
+    0
+}
 
 // find first illegal delimiter on each line (if present), give it a score, and
 // total the scores.
@@ -26,6 +33,15 @@ fn part_one(inputs: &str) -> usize {
     );
     println!("total score: {}", total_score);
     total_score
+}
+
+fn score_completion_string(completion: &str) -> usize {
+    let mut score = 0usize;
+    for c in completion.chars() {
+        let value = pay_me(c);
+        score = score * 5 + value;
+    }
+    score
 }
 
 fn score_corrupted_line(line: &str) -> Option<usize> {
@@ -81,6 +97,16 @@ fn delimiters_are_matching(op: char, cl: char) -> bool {
     || (op == '<' && cl == '>')
 }
 
+fn pay_me(work: char) -> usize {
+    match work {
+        ')' => 1,
+        ']' => 2,
+        '}' => 3,
+        '>' => 4,
+        _ => panic!("come ON,"),
+    }
+}
+
 fn punish_me_daddy(badness: char) -> usize {
     match badness {
         ')' => BAD_PAREN,
@@ -115,8 +141,16 @@ mod tests {
 
     #[test]
     fn example_part_two() {
-        let answer = ();
+        let answer = 288957;
         let result = part_two(EXAMPLE);
         assert_eq!(result, answer);
+    }
+
+    #[test]
+    fn score_some_completion_strings() {
+        assert_eq!(score_completion_string("])}>"), 294);
+        assert_eq!(score_completion_string("}}]])})]"), 288957);
+        assert_eq!(score_completion_string(")}>]})"), 5566);
+        assert_eq!(score_completion_string("}}>}>))))"), 1480781);
     }
 }
