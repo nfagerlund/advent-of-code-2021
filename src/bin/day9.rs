@@ -8,6 +8,9 @@ fn main() {
 }
 
 // Sizes of the three largest basins, multiplied together.
+// OK! I think... hashmap. then collect values in a vec (bc we stop caring about
+// locations), sort them, reverse and take three.
+// Only question is whether we can use a tuple as a hash key...
 fn part_two(inputs: &str) -> usize {
 
     0
