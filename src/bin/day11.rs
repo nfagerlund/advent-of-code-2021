@@ -7,12 +7,29 @@ fn main() {
     part_two(&inputs);
 }
 
-fn part_two(_inputs: &str) {}
+fn part_two(inputs: &str) -> usize {
+    let mut octogrid = parse_inputs(inputs);
+    // println!("The stuff is here:\n{:#?}", &octogrid);
+    // TO FINITY, AND BEYOND,
+    let result = (1..usize::MAX).map(|step| {
+        // pass 1: get everybody's heart started
+        octogrid.charge_octopi();
+        // pass 2: recursively flash octopi.
+        octogrid.flash_octopi();
+        // pass 3: reset any octopi who need it
+        let flash_count = octogrid.reset_octopi();
+        // Oh right, we also need to get the count of flashes. Let's do that above.
+        (step, flash_count)
+    }).find(|(_, flash_count)| *flash_count == 100 );
+    let first_synchronized_step = result.unwrap().0;
+    println!("First step with all flashes synchronized: {}", first_synchronized_step);
+    first_synchronized_step
+}
 
 // Hmm. This might be easier than I first thought.
 fn part_one(inputs: &str) -> usize {
     let mut octogrid = parse_inputs(inputs);
-    println!("The stuff is here:\n{:#?}", &octogrid);
+    // println!("The stuff is here:\n{:#?}", &octogrid);
     let flash_total: usize = (0..100).map(|_| {
         // pass 1: get everybody's heart started
         octogrid.charge_octopi();
@@ -331,7 +348,7 @@ mod tests {
 
     #[test]
     fn example_part_two() {
-        let answer = ();
+        let answer = 195;
         let result = part_two(EXAMPLE);
         assert_eq!(result, answer);
     }
