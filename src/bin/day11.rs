@@ -20,26 +20,39 @@ fn part_one(inputs: &str) -> usize {
 // more generic anyway.
 
 /// A grid using game-like coordinates (i.e. 0,0 => upper left corner).
-struct Grid<T> {
-    pub data: Vec<Vec<T>>, // vec of rows of values
+pub struct Grid<T> {
+    data: Vec<Vec<T>>, // vec of rows of values
 }
 
-type Tile = (usize, usize);
+pub type Tile = (usize, usize);
 enum Axis {
     X,
     Y,
 }
 
 impl<T> Grid<T> {
-    fn height(&self) -> usize { self.data.len() }
+    pub fn new(data: Vec<Vec<T>>) -> Grid<T> {
+        Grid { data }
+    }
+
+    pub fn height(&self) -> usize { self.data.len() }
     // Constructor is in charge of not giving us inconsistent widths! I'm still not checking.
-    fn width(&self) -> usize { self.data[0].len() }
+    pub fn width(&self) -> usize { self.data[0].len() }
+
+    pub fn tiles(&self) -> Box<dyn Iterator<Item = Tile>> {
+        let height = self.height();
+        let width = self.width();
+        let tiles_iter = (0..height).map(move |y| {
+            (0..width).map(move |x| (x, y))
+        }).flatten();
+        Box::new(tiles_iter)
+    }
 
     /// Returns an immutable reference to the value in a tile. `None` means the
     /// coordinates in the requested tile are out of bounds; in curent
     /// implementation, every tile has to have a valid value, so you gotta use
     /// an Option of your own if some tiles need empty values.
-    fn get_tile_value(&self, tile: Tile) -> Option<&T> {
+    pub fn get_tile_value(&self, tile: Tile) -> Option<&T> {
         let (x, y) = tile;
         match self.data.get(y) { // row
             None => None,
@@ -53,7 +66,7 @@ impl<T> Grid<T> {
     }
 
     /// Same as before but mutable reference.
-    fn get_tile_value_mut(&mut self, tile: Tile) -> Option<&mut T> {
+    pub fn get_tile_value_mut(&mut self, tile: Tile) -> Option<&mut T> {
         let (x, y) = tile;
         match self.data.get_mut(y) { // row
             None => None,
@@ -147,7 +160,7 @@ impl<T> Grid<T> {
     }
 
     // get coords
-    fn get_neighbors_cardinal(&self, tile: Tile) -> Vec<Option<Tile>> {
+    pub fn get_neighbors_cardinal(&self, tile: Tile) -> Vec<Option<Tile>> {
         vec![
             self.get_neighbor_n(tile),
             self.get_neighbor_e(tile),
@@ -155,7 +168,7 @@ impl<T> Grid<T> {
             self.get_neighbor_w(tile),
         ]
     }
-    fn get_neighbors_ordinal(&self, tile: Tile) -> Vec<Option<Tile>> {
+    pub fn get_neighbors_ordinal(&self, tile: Tile) -> Vec<Option<Tile>> {
         vec![
             self.get_neighbor_ne(tile),
             self.get_neighbor_nw(tile),
@@ -163,7 +176,7 @@ impl<T> Grid<T> {
             self.get_neighbor_sw(tile),
         ]
     }
-    fn get_neighbors_all(&self, tile: Tile) -> Vec<Option<Tile>> {
+    pub fn get_neighbors_all(&self, tile: Tile) -> Vec<Option<Tile>> {
         let mut neighbors = self.get_neighbors_cardinal(tile);
         let mut ordinal_neighbors = self.get_neighbors_ordinal(tile);
         neighbors.append(&mut ordinal_neighbors);
@@ -199,5 +212,17 @@ mod tests {
         let answer = ();
         let result = part_two(EXAMPLE);
         assert_eq!(result, answer);
+    }
+
+    #[test]
+    fn that_iterator_thing() {
+        let data = vec![
+            vec![1, 0, 5, 5],
+            vec![0, 8, 9, 9],
+        ];
+
+        let grid = Grid::new(data);
+        let count = grid.tiles().count();
+        assert_eq!(count, 8);
     }
 }
