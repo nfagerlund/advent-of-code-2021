@@ -12,6 +12,8 @@ fn main() {
 fn part_two(inputs: &str) -> usize {
     let mut octogrid = parse_inputs(inputs);
     let mut curse = EasyCurses::initialize_system().unwrap();
+    curse.set_cursor_visibility(CursorVisibility::Invisible);
+    curse.set_echo(false);
 
     // draw initial state:
     octogrid.draw_all_octopi(&mut curse);
@@ -119,16 +121,18 @@ impl Grid<Octopus> {
     fn draw_octopus(&self, tile: Tile, curse: &mut EasyCurses) {
         let octo = self.get_tile_value(tile).unwrap();
         let (x, y) = tile;
+        let x = x * 2;
         if octo.flashed() {
             curse.set_color_pair(ColorPair::new(Color::Cyan, Color::Black));
         } else {
             curse.set_color_pair(ColorPair::new(Color::Blue, Color::Black));
         }
-        let ch = match octo.energy {
-            (0..=9) => char::from_digit(octo.energy as u32, 10).unwrap(),
+        let energy = octo.energy();
+        let ch = match energy {
+            (0..=9) => char::from_digit(energy as u32, 10).unwrap(),
             _ => '*',
         };
-        curse.move_rc(x as i32, y as i32);
+        curse.move_rc(y as i32, x as i32);
         curse.print_char(ch);
         // Need to call refresh after calling this!
     }
@@ -139,7 +143,7 @@ impl Grid<Octopus> {
         }
         curse.refresh();
         // make sure I can see the damn thing!
-        thread::sleep(time::Duration::from_millis(50));
+        thread::sleep(time::Duration::from_millis(80));
     }
 }
 
