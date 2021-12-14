@@ -1,4 +1,6 @@
 use advent21::*;
+use easycurses::*;
+use std::{thread, time};
 
 // the one with the dumbo octopuses
 fn main() {
@@ -9,6 +11,11 @@ fn main() {
 
 fn part_two(inputs: &str) -> usize {
     let mut octogrid = parse_inputs(inputs);
+    let mut curse = EasyCurses::initialize_system().unwrap();
+
+    // draw initial state:
+    octogrid.draw_all_octopi(&mut curse);
+
     // println!("The stuff is here:\n{:#?}", &octogrid);
     // TO FINITY, AND BEYOND,
     let result = (1..usize::MAX).map(|step| {
@@ -16,11 +23,17 @@ fn part_two(inputs: &str) -> usize {
         octogrid.charge_octopi();
         // pass 2: recursively flash octopi.
         octogrid.flash_octopi();
+        // PASS 2.5: PRETTY PICTURES
+        octogrid.draw_all_octopi(&mut curse);
         // pass 3: reset any octopi who need it
         let flash_count = octogrid.reset_octopi();
         // Oh right, we also need to get the count of flashes. Let's do that above.
         (step, flash_count)
     }).find(|(_, flash_count)| *flash_count == 100 );
+
+    // clean up curses session:
+    drop(curse);
+
     let first_synchronized_step = result.unwrap().0;
     println!("First step with all flashes synchronized: {}", first_synchronized_step);
     first_synchronized_step
@@ -102,6 +115,32 @@ impl Grid<Octopus> {
             }
         }
     }
+
+    fn draw_octopus(&self, tile: Tile, curse: &mut EasyCurses) {
+        let octo = self.get_tile_value(tile).unwrap();
+        let (x, y) = tile;
+        if octo.flashed() {
+            curse.set_color_pair(ColorPair::new(Color::Cyan, Color::Black));
+        } else {
+            curse.set_color_pair(ColorPair::new(Color::Blue, Color::Black));
+        }
+        let ch = match octo.energy {
+            (0..=9) => char::from_digit(octo.energy as u32, 10).unwrap(),
+            _ => '*',
+        };
+        curse.move_rc(x as i32, y as i32);
+        curse.print_char(ch);
+        // Need to call refresh after calling this!
+    }
+
+    fn draw_all_octopi(&self, curse: &mut EasyCurses) {
+        for tile in self.tiles() {
+            self.draw_octopus(tile, curse);
+        }
+        curse.refresh();
+        // make sure I can see the damn thing!
+        thread::sleep(time::Duration::from_millis(50));
+    }
 }
 
 #[derive(Debug)]
@@ -125,6 +164,10 @@ impl Octopus {
 
     fn flashed(&self) -> bool {
         self.flashed
+    }
+
+    fn energy(&self) -> usize {
+        self.energy
     }
 
     fn should_flash(&self) -> bool {
