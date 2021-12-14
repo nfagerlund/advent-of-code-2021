@@ -42,4 +42,13 @@ fn main() {
     let summed: usize = sorted.iter().rev().take(3).sum();
     println!("sum: {}", summed);
     println!("5/2 = {}", 5usize / 2); // integer division - 5/2 = 2.
+    let tile = (1,4);
+    let some_x = barf_x(tile);
+    println!("tile still exists bc copy: {:?}, {}", tile, some_x);
+    // ok cool, tuples of ints are Copy.
+}
+
+fn barf_x(tile: (i32, i32)) -> i32 {
+    let (some_x, _) = tile;
+    some_x
 }
