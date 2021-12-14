@@ -7,13 +7,24 @@ fn main() {
     part_two(&inputs);
 }
 
-fn part_two(inputs: &str) {}
+fn part_two(_inputs: &str) {}
 
 // Hmm. This might be easier than I first thought.
 fn part_one(inputs: &str) -> usize {
-    let octogrid = parse_inputs(inputs);
+    let mut octogrid = parse_inputs(inputs);
     println!("The stuff is here:\n{:#?}", &octogrid);
-    0
+    let flash_total: usize = (0..100).map(|_| {
+        // pass 1: get everybody's heart started
+        octogrid.charge_octopi();
+        // pass 2: recursively flash octopi.
+        octogrid.flash_octopi();
+        // pass 3: reset any octopi who need it
+        let flash_count = octogrid.reset_octopi();
+        // Oh right, we also need to get the count of flashes. Let's do that above.
+        flash_count
+    }).sum();
+    println!("Total flashes after 100 steps: {}", flash_total);
+    flash_total
 }
 
 // Ok, right, so I THINK each octopus should be a struct.
@@ -31,6 +42,50 @@ fn part_one(inputs: &str) -> usize {
 // - FLASH: ...ok let's just stfu and write some code. But the point is, gotta
 //   handle flashing somewhat recursively because it might backtrack to an
 //   octopus we already processed!
+// - third pass: iterate over tiles, count flashes, and reset octopi.
+
+impl Grid<Octopus> {
+    fn charge_octopi(&mut self) {
+        for tile in self.tiles() {
+            let octo = self.get_tile_value_mut(tile).unwrap();
+            octo.charge();
+        }
+    }
+
+    fn flash_octopi(&mut self) {
+        for tile in self.tiles() {
+            self.recursively_flash_octopi(tile);
+        }
+    }
+
+    // also returns the number of flashes discovered.
+    fn reset_octopi(&mut self) -> usize {
+        let mut flashes: usize = 0;
+        for tile in self.tiles() {
+            let octo = self.get_tile_value_mut(tile).unwrap();
+            if octo.flashed() {
+                flashes += 1;
+            }
+            octo.reset();
+        }
+        flashes
+    }
+
+    fn recursively_flash_octopi(&mut self, tile: Tile) {
+        let octo = self.get_tile_value_mut(tile).unwrap();
+        if octo.should_flash() {
+            octo.flash();
+            for neighbor in self.get_neighbors_all(tile) {
+                if let Some(neighbor) = neighbor {
+                    // charge each neighbor
+                    self.get_tile_value_mut(neighbor).unwrap().charge();
+                    // maybe flash it, if called for.
+                    self.recursively_flash_octopi(neighbor);
+                }
+            }
+        }
+    }
+}
 
 #[derive(Debug)]
 struct Octopus {
@@ -49,6 +104,10 @@ impl Octopus {
 
     fn flash(&mut self) {
         self.flashed = true;
+    }
+
+    fn flashed(&self) -> bool {
+        self.flashed
     }
 
     fn should_flash(&self) -> bool {
