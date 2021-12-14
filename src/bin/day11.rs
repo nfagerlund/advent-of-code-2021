@@ -11,8 +11,60 @@ fn part_two(inputs: &str) {}
 
 // Hmm. This might be easier than I first thought.
 fn part_one(inputs: &str) -> usize {
-
+    let octogrid = parse_inputs(inputs);
+    println!("The stuff is here:\n{:#?}", &octogrid);
     0
+}
+
+// Ok, right, so I THINK each octopus should be a struct.
+// oh wait. That was when I was thinking I needed to keep track of who had
+// flashed this turn. But, I think we can just let the values keep increasing
+// past 9, use the transition from 9 -> 10 as the flash trigger, and do a final
+// pass to reset to 0. OK, octopus can just be a usize. Wow, all that work to
+// get the grid generic for nothing.
+
+// OK, so,
+// - first pass: increase every octopus's energy by 1.
+// - second pass: .......
+//      AH HA, I DO NEED A STRUCT! Consider: 1 10 11 2. Oct0: skip. Oct1: flash; oct2 goes to 12. oct2: should we flash? Can't tell if we did it already! OK fine.
+// - second pass: iterate over every octopus. If energy > 9 and flashed == false, FLASH.
+// - FLASH: ...ok let's just stfu and write some code. But the point is, gotta
+//   handle flashing somewhat recursively because it might backtrack to an
+//   octopus we already processed!
+
+#[derive(Debug)]
+struct Octopus {
+    energy: usize,
+    flashed: bool,
+}
+
+impl Octopus {
+    fn new(energy: usize) -> Octopus {
+        Octopus { energy, flashed: false }
+    }
+
+    fn charge(&mut self) {
+        self.energy += 1;
+    }
+
+    fn flash(&mut self) {
+        self.flashed = true;
+    }
+
+    fn should_flash(&self) -> bool {
+        !self.flashed && self.energy > 9
+    }
+
+    fn reset(&mut self) {
+        if self.flashed && self.energy > 9 {
+            self.flashed = false;
+            self.energy = 0;
+        } else if !self.flashed && self.energy <= 9 {
+            // do nothing
+        } else {
+            panic!("This octopus wasn't processed properly! {:?}", self)
+        }
+    }
 }
 
 // But before any of that, it's time to set up our grid! IDK if we'll use this
@@ -20,6 +72,7 @@ fn part_one(inputs: &str) -> usize {
 // more generic anyway.
 
 /// A grid using game-like coordinates (i.e. 0,0 => upper left corner).
+#[derive(Debug)]
 pub struct Grid<T> {
     data: Vec<Vec<T>>, // vec of rows of values
 }
@@ -184,6 +237,16 @@ impl<T> Grid<T> {
     }
 }
 
+fn parse_inputs(inputs: &str) -> Grid<Octopus> {
+    let data: Vec<Vec<Octopus>> = inputs.lines().map(|line| {
+        line.chars().map(|ch| {
+            let energy = ch.to_digit(10).unwrap();
+            Octopus::new(energy as usize)
+        }).collect()
+    }).collect();
+    Grid::new(data)
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -222,6 +285,9 @@ mod tests {
         ];
 
         let grid = Grid::new(data);
+        for tile in grid.tiles() {
+            println!("{:?}", tile);
+        }
         let count = grid.tiles().count();
         assert_eq!(count, 8);
     }
