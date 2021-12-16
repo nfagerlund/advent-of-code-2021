@@ -11,7 +11,12 @@ fn main() {
 fn part_two(inputs: &str) -> usize {
     let system = parse_inputs_tentatively(inputs);
     let shotgun_shack: Vec<&str> = Vec::new();
-    let paths = traverse_caves_with_one_repeated_small("start", &shotgun_shack, &system);
+    let paths = traverse_caves_with_one_repeated_small(
+        "start",
+        &shotgun_shack,
+        false,
+        &system
+    );
     let count = paths.len();
     println!("Unique paths to end (one repeated small allowed): {}", count);
     count
@@ -97,16 +102,22 @@ fn maybe_traverse_caves<'a>(well: &'a str, how_did_i_get_here: &Vec<&'a str>, sy
 }
 
 // fuck it I'm just c&p-ing this one instead of trying to generalize it.
-fn traverse_caves_with_one_repeated_small<'a>(well: &'a str, how_did_i_get_here: &Vec<&'a str>, system: &HashMap<&'a str, Vec<&'a str>>) -> Vec<Vec<&'a str>> {
+fn traverse_caves_with_one_repeated_small<'a>(
+    well: &'a str,
+    how_did_i_get_here: &Vec<&'a str>,
+    duplicate_used: bool,
+    system: &HashMap<&'a str, Vec<&'a str>>
+) -> Vec<Vec<&'a str>> {
 
-    if is_small(well) && how_did_i_get_here.contains(&well) {
+    let is_duplicate = is_small(well) && how_did_i_get_here.contains(&well);
+    if is_duplicate {
         // Here's the difference: we might not be at a dead-end!
         if well == "start" {
             // NOPE, can't return to the beginning, that's a fail.
             return vec![];
         }
-        if has_duplicate_small_cave(how_did_i_get_here) {
-            // ok, NOW we're at a dead-end. You only get one repeat.
+        if duplicate_used {
+            // ok, NOW we're at a dead-end. You only get one repeat, and this is our second.
             return vec![];
         }
         // If neither of those fired, we're good! We don't really need to handle
@@ -123,7 +134,14 @@ fn traverse_caves_with_one_repeated_small<'a>(well: &'a str, how_did_i_get_here:
     // - ok, we're traversing! we're recursing! return ambiguous result (many paths)
     let destinations = system.get(well).unwrap();
     let results: Vec<Vec<&str>> = destinations.iter()
-        .map(|cave| traverse_caves_with_one_repeated_small(cave, &into_the_silent_water, system))
+        .map(|cave|
+            traverse_caves_with_one_repeated_small(
+                cave,
+                &into_the_silent_water,
+                is_duplicate,
+                system,
+            )
+        )
         .flatten()
         .filter(|path| path.len() > 0)
         .collect();
