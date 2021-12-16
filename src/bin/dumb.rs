@@ -46,6 +46,18 @@ fn main() {
     let some_x = barf_x(tile);
     println!("tile still exists bc copy: {:?}, {}", tile, some_x);
     // ok cool, tuples of ints are Copy.
+
+    // how's Vec::from work? oh, it is NOT what I want. Could do .iter.collect too, I guess.
+    let mut vec1 = vec!["one", "two"];
+    // let mut vec2: Vec<&str> = Vec::new();
+    // vec2.extend(&vec1);
+    let ref1 = &vec1;
+    let vec2: Vec<&str> = ref1.clone();
+    // let vec2: Vec<&str> = vec1.iter().collect(); // oh. nope, I can't.
+    vec1.push("three");
+    println!("vec1: {:?}\nvec2: {:?}", &vec1, &vec2);
+    let three = "three";
+    dbg!(vec1.contains(&three)); // doesn't work without the &! wants a &&str.
 }
 
 fn barf_x(tile: (i32, i32)) -> i32 {
