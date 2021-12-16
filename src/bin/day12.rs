@@ -13,7 +13,7 @@ fn part_two(inputs: &str) -> usize {
     let shotgun_shack: Vec<&str> = Vec::new();
     let paths = traverse_caves_with_one_repeated_small("start", &shotgun_shack, &system);
     let count = paths.len();
-    println!("Unique paths to end: {}", count);
+    println!("Unique paths to end (one repeated small allowed): {}", count);
     count
 }
 
@@ -101,10 +101,17 @@ fn traverse_caves_with_one_repeated_small<'a>(well: &'a str, how_did_i_get_here:
 
     if is_small(well) && how_did_i_get_here.contains(&well) {
         // Here's the difference: we might not be at a dead-end!
+        if well == "start" {
+            // NOPE, can't return to the beginning, that's a fail.
+            return vec![];
+        }
         if has_duplicate_small_cave(how_did_i_get_here) {
             // ok, NOW we're at a dead-end. You only get one repeat.
             return vec![];
         }
+        // If neither of those fired, we're good! We don't really need to handle
+        // the special case for "end", because we'll bail immediately in just a
+        // moment anyway.
     }
     // prep for next branches, which will need the current cave
     let mut into_the_silent_water: Vec<&str> = how_did_i_get_here.clone();
