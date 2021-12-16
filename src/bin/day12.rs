@@ -135,12 +135,19 @@ fn traverse_caves_with_one_repeated_small<'a>(
     let destinations = system.get(well).unwrap();
     let results: Vec<Vec<&str>> = destinations.iter()
         .map(|cave|
-            traverse_caves_with_one_repeated_small(
-                cave,
-                &into_the_silent_water,
-                is_duplicate,
-                system,
-            )
+            // Let's try bailing early for predictable dead ends instead of recursing.
+            if *cave == "start" {
+                vec![]
+            } else if is_small(*cave) && how_did_i_get_here.contains(cave) && is_duplicate {
+                vec![]
+            } else {
+                traverse_caves_with_one_repeated_small(
+                    cave,
+                    &into_the_silent_water,
+                    is_duplicate,
+                    system,
+                )
+            }
         )
         .flatten()
         .filter(|path| path.len() > 0)
