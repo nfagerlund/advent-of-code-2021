@@ -1,5 +1,5 @@
 use advent21::*;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 // The one with traversing a cave graph.
 fn main() {
@@ -8,7 +8,14 @@ fn main() {
     part_two(&inputs);
 }
 
-fn part_two(_inputs: &str) {}
+fn part_two(inputs: &str) -> usize {
+    let system = parse_inputs_tentatively(inputs);
+    let shotgun_shack: Vec<&str> = Vec::new();
+    let paths = traverse_caves_with_one_repeated_small("start", &shotgun_shack, &system);
+    let count = paths.len();
+    println!("Unique paths to end: {}", count);
+    count
+}
 
 fn part_one(inputs: &str) -> usize {
     let system = parse_inputs_tentatively(inputs);
@@ -44,6 +51,19 @@ fn is_small(cave: &str) -> bool {
     cave.chars().next().unwrap().is_ascii_lowercase()
 }
 
+fn has_duplicate_small_cave(path: &Vec<&str>) -> bool {
+    let mut seen_smalls: HashSet<&str> = HashSet::new();
+    for &cave in path {
+        if is_small(cave) {
+            if seen_smalls.contains(cave) {
+                return true;
+            }
+            seen_smalls.insert(cave);
+        }
+    }
+    false
+}
+
 // Ok, ok. So, I think I can do this with a recursive for-loop. It's just that the contents of the loop are likely goofy.
 
 // how_did_i_get_here is the path before we got to the current cave (well). This
@@ -70,6 +90,33 @@ fn maybe_traverse_caves<'a>(well: &'a str, how_did_i_get_here: &Vec<&'a str>, sy
     let destinations = system.get(well).unwrap();
     let results: Vec<Vec<&str>> = destinations.iter()
         .map(|cave| maybe_traverse_caves(cave, &into_the_silent_water, system))
+        .flatten()
+        .filter(|path| path.len() > 0)
+        .collect();
+    results
+}
+
+// fuck it I'm just c&p-ing this one instead of trying to generalize it.
+fn traverse_caves_with_one_repeated_small<'a>(well: &'a str, how_did_i_get_here: &Vec<&'a str>, system: &HashMap<&'a str, Vec<&'a str>>) -> Vec<Vec<&'a str>> {
+
+    if is_small(well) && how_did_i_get_here.contains(&well) {
+        // Here's the difference: we might not be at a dead-end!
+        if has_duplicate_small_cave(how_did_i_get_here) {
+            // ok, NOW we're at a dead-end. You only get one repeat.
+            return vec![];
+        }
+    }
+    // prep for next branches, which will need the current cave
+    let mut into_the_silent_water: Vec<&str> = how_did_i_get_here.clone();
+    into_the_silent_water.push(well);
+    // - if we're at the end, return success (1 path).
+    if well == "end" {
+        return vec![into_the_silent_water];
+    }
+    // - ok, we're traversing! we're recursing! return ambiguous result (many paths)
+    let destinations = system.get(well).unwrap();
+    let results: Vec<Vec<&str>> = destinations.iter()
+        .map(|cave| traverse_caves_with_one_repeated_small(cave, &into_the_silent_water, system))
         .flatten()
         .filter(|path| path.len() > 0)
         .collect();
@@ -110,7 +157,7 @@ start-RW
 
     #[test]
     fn example_part_two() {
-        let answer = ();
+        let answer = 3509;
         let result = part_two(EXAMPLE);
         assert_eq!(result, answer);
     }
