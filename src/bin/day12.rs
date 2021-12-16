@@ -43,29 +43,6 @@ fn parse_inputs_tentatively<'a>(inputs: &'a str) -> HashMap<&'a str, Vec<&'a str
 fn is_small(cave: &str) -> bool {
     cave.chars().next().unwrap().is_ascii_lowercase()
 }
-fn is_large(cave: &str) -> bool {
-    cave.chars().next().unwrap().is_ascii_uppercase()
-}
-
-// Right, so, I think the hardest-seeming part to me right now is the allowed
-// backtracking. How do I know when to stop going back to a big cave? Well, got
-// to keep track somehow. Also... what do I do when I've gotten into a dead end?
-// oh. return blank.
-
-// Idk if I need this.
-fn is_exhausted(cave: &str, visited: &Vec<&str>, system: &HashMap<&str, Vec<&str>>) -> bool {
-    if is_small(cave) && visited.contains(&cave) {
-        true
-    } else {
-        let edges = system.get(cave).unwrap();
-        // if we can go anywhere non-exhausted from here...
-        if edges.iter().any(|c| !is_exhausted(c, visited, system)) {
-            false
-        } else {
-            true
-        }
-    }
-}
 
 // Ok, ok. So, I think I can do this with a recursive for-loop. It's just that the contents of the loop are likely goofy.
 
