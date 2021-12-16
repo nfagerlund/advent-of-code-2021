@@ -10,9 +10,8 @@ fn main() {
 
 fn part_two(inputs: &str) -> usize {
     let system = parse_inputs_tentatively(inputs);
-    let shotgun_shack: Vec<&str> = Vec::new();
+    let shotgun_shack: Vec<&str> = vec!["start"];
     let paths = traverse_caves_with_one_repeated_small(
-        "start",
         &shotgun_shack,
         false,
         &system
@@ -101,57 +100,42 @@ fn maybe_traverse_caves<'a>(well: &'a str, how_did_i_get_here: &Vec<&'a str>, sy
     results
 }
 
-// fuck it I'm just c&p-ing this one instead of trying to generalize it.
+// Let's try: we DO get our trail with ourselves already appended
 fn traverse_caves_with_one_repeated_small<'a>(
-    well: &'a str,
     how_did_i_get_here: &Vec<&'a str>,
     duplicate_used: bool,
     system: &HashMap<&'a str, Vec<&'a str>>
 ) -> Vec<Vec<&'a str>> {
-
-    let is_duplicate = is_small(well) && how_did_i_get_here.contains(&well);
-    if is_duplicate {
-        // Here's the difference: we might not be at a dead-end!
-        if well == "start" {
-            // NOPE, can't return to the beginning, that's a fail.
-            return vec![];
-        }
-        if duplicate_used {
-            // ok, NOW we're at a dead-end. You only get one repeat, and this is our second.
-            return vec![];
-        }
-        // If neither of those fired, we're good! We don't really need to handle
-        // the special case for "end", because we'll bail immediately in just a
-        // moment anyway.
-    }
-    // prep for next branches, which will need the current cave
-    let mut into_the_silent_water: Vec<&str> = how_did_i_get_here.clone();
-    into_the_silent_water.push(well);
-    // - if we're at the end, return success (1 path).
-    if well == "end" {
-        return vec![into_the_silent_water];
-    }
-    // - ok, we're traversing! we're recursing! return ambiguous result (many paths)
+    let well = how_did_i_get_here.last().unwrap();
+    // we're traversing early! we're recursing! return ambiguous result (many paths)
     let destinations = system.get(well).unwrap();
-    let results: Vec<Vec<&str>> = destinations.iter()
-        .map(|cave|
-            // Let's try bailing early for predictable dead ends instead of recursing.
-            if *cave == "start" {
-                vec![]
-            } else if is_small(*cave) && how_did_i_get_here.contains(cave) && is_duplicate {
-                vec![]
+    let results: Vec<Vec<&str>> = destinations.iter().map(|cave| {
+        if *cave == "start" {
+            // failure! went back to start.
+            vec![vec![]]
+        } else if *cave == "end" {
+            // success! stop now.
+            let mut result: Vec<&str> = how_did_i_get_here.clone();
+            result.push(*cave);
+            vec![result]
+        } else if is_small(*cave) && how_did_i_get_here.contains(cave) {
+            // on thin ice...
+            if duplicate_used {
+                // you're outta here!
+                vec![vec![]]
             } else {
-                traverse_caves_with_one_repeated_small(
-                    cave,
-                    &into_the_silent_water,
-                    is_duplicate,
-                    system,
-                )
+                // spend our duplicate here and recurse
+                let mut result: Vec<&str> = how_did_i_get_here.clone();
+                result.push(*cave);
+                traverse_caves_with_one_repeated_small(&result, true, system)
             }
-        )
-        .flatten()
-        .filter(|path| path.len() > 0)
-        .collect();
+        } else {
+            // g2g, recurse
+            let mut result: Vec<&str> = how_did_i_get_here.clone();
+            result.push(*cave);
+            traverse_caves_with_one_repeated_small(&result, duplicate_used, system)
+        }
+    }).flatten().filter(|path| path.len() > 0).collect();
     results
 }
 
