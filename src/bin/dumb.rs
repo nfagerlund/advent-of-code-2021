@@ -58,6 +58,16 @@ fn main() {
     println!("vec1: {:?}\nvec2: {:?}", &vec1, &vec2);
     let three = "three";
     dbg!(vec1.contains(&three)); // doesn't work without the &! wants a &&str.
+
+    // how bout cloning hashsets?
+    let mut hs1: HashSet<&str> = HashSet::new();
+    hs1.insert("hey");
+    hs1.insert("ho");
+    let hr1 = &hs1;
+    let hs2: HashSet<&str> = hr1.clone();
+    hs1.insert("let's go");
+    dbg!(hs1);
+    dbg!(hs2);
 }
 
 fn barf_x(tile: (i32, i32)) -> i32 {
