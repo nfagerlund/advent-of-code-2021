@@ -9,7 +9,11 @@ fn main() {
     part_two(&inputs);
 }
 
-fn part_two(_inputs: &str) {}
+// exact same thing except 40 steps instead of 10. I see this is another one
+// designed to prank a naïve solution's performance.
+fn part_two(inputs: &str) -> usize {
+    part_every(inputs, 40)
+}
 
 // simultaneously insert the indicated element between each pair of elements. Do
 // this 10 times, then subtract the least common element from the most common
@@ -18,6 +22,10 @@ fn part_two(_inputs: &str) {}
 // - Re-use just two vecs and take advantage of their auto-resizing.
 // - Do something funky with the "pairs" issue.
 fn part_one(inputs: &str) -> usize {
+    part_every(inputs, 10)
+}
+
+fn part_every(inputs: &str, iterations: usize) -> usize {
     let (template, rules) = parse_inputs(inputs);
     println!("the stuff is here.");
     // dbg!(&template);
@@ -26,7 +34,7 @@ fn part_one(inputs: &str) -> usize {
     let mut spare: Vec<char> = Vec::new();
 
     // ok 3, 2, 1, lets jam
-    for _ in 0..10 {
+    for _ in 0..iterations {
         let previous = polymer; // a move
         polymer = spare; // a move
         polymer.clear();
@@ -126,7 +134,7 @@ CN -> C
 
     #[test]
     fn example_part_two() {
-        let answer = ();
+        let answer = 2188189693529;
         let result = part_two(EXAMPLE);
         assert_eq!(result, answer);
     }
