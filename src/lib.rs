@@ -15,6 +15,8 @@ pub fn i32_or_die(s: &str) -> i32 {
 }
 
 pub mod grid {
+    use std::fmt;
+
     /// A grid using game-like coordinates (i.e. 0,0 => upper left corner).
     #[derive(Debug)]
     pub struct Grid<T> {
@@ -22,9 +24,19 @@ pub mod grid {
     }
 
     pub type Tile = (usize, usize);
-    enum Axis {
+
+    #[derive(Debug)]
+    pub enum Axis {
         X,
         Y,
+    }
+
+    #[derive(Debug)]
+    pub struct OutOfBoundsError;
+    impl fmt::Display for OutOfBoundsError {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "attempted unrecoverable operation on a tile outside this grid")
+        }
     }
 
     impl<T> Grid<T> {
@@ -72,6 +84,16 @@ pub mod grid {
                         None => None,
                         Some(value) => Some(value),
                     }
+                },
+            }
+        }
+
+        pub fn set_tile_value(&mut self, tile: Tile, value: T) -> Result<(), OutOfBoundsError> {
+            match self.get_tile_value_mut(tile) {
+                None => Err(OutOfBoundsError),
+                Some(mut_val) => {
+                    *mut_val = value;
+                    Ok(())
                 },
             }
         }
