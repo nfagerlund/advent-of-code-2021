@@ -8,12 +8,16 @@ fn main() {
     part_two(&inputs);
 }
 
-fn part_two(_inputs: &str) {}
+fn part_two(inputs: &str) {
+    let (grid, folds) = parse_inputs(inputs);
+    let final_grid = folds.iter().fold(grid, |grid, fold| grid.crease(fold));
+    final_grid.draw();
+}
 
 // Count of visible dots after completing only the first fold.
 fn part_one(inputs: &str) -> usize {
     let (grid, folds) = parse_inputs(inputs);
-    println!("The stuff is here:");
+    // println!("The stuff is here:");
     // dbg!(&grid);
     // dbg!(&folds);
     let new_grid = grid.crease(&folds[0]);
@@ -25,9 +29,25 @@ fn part_one(inputs: &str) -> usize {
 
 trait DotGrid {
     fn crease(&self, fold: &Fold) -> Grid<bool>;
+    fn draw(&self);
 }
 
 impl DotGrid for Grid<bool> {
+    fn draw(&self) {
+        let mut output = String::new();
+        for row in self.data.iter() {
+            for tile in row {
+                let c = match *tile {
+                    true => '*',
+                    false => ' ',
+                };
+                output.push(c);
+            }
+            output.push_str("\n");
+        }
+        println!("{}", &output);
+    }
+
     fn crease(&self, fold: &Fold) -> Grid<bool> {
         match fold.axis {
             Axis::X => {
@@ -162,10 +182,11 @@ fold along x=5
         assert_eq!(result, answer);
     }
 
-    #[test]
-    fn example_part_two() {
-        let answer = ();
-        let result = part_two(EXAMPLE);
-        assert_eq!(result, answer);
-    }
+    // Alas, part two is untestable.
+    // #[test]
+    // fn example_part_two() {
+    //     let answer = ();
+    //     let result = part_two(EXAMPLE);
+    //     assert_eq!(result, answer);
+    // }
 }
