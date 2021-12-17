@@ -34,21 +34,16 @@ fn part_every(inputs: &str, iterations: usize) -> usize {
     let mut spare: Vec<char> = Vec::new();
 
     // ok 3, 2, 1, lets jam
-    for _ in 0..iterations {
+    for i in 0..iterations {
+        dbg!(i);
         let previous = polymer; // a move
         polymer = spare; // a move
         polymer.clear();
         let length = previous.len();
 
         for i in 0..length {
-            let current = previous[i];
-            polymer.push(current);
-            let next_index = i + 1;
-            if next_index < length {
-                let next = previous[next_index];
-                let insertion = rules.get(&current).unwrap().get(&next).unwrap();
-                polymer.push(*insertion);
-            }
+            polymer.push('x');
+            polymer.push('x');
         }
         // reduce reuse recycle
         spare = previous;
