@@ -34,16 +34,21 @@ fn part_every(inputs: &str, iterations: usize) -> usize {
     let mut spare: Vec<char> = Vec::new();
 
     // ok 3, 2, 1, lets jam
-    for i in 0..iterations {
-        dbg!(i);
+    for _ in 0..iterations {
         let previous = polymer; // a move
         polymer = spare; // a move
         polymer.clear();
         let length = previous.len();
 
-        for (i, current) in previous.iter().enumerate() {
-            let current = *current;
-            hot_bit(i, current, length, &mut polymer, &previous, &rules);
+        for i in 0..length {
+            let current = previous[i];
+            polymer.push(current);
+            let next_index = i + 1;
+            if next_index < length {
+                let next = previous[next_index];
+                let insertion = rules.get(&current).unwrap().get(&next).unwrap();
+                polymer.push(*insertion);
+            }
         }
         // reduce reuse recycle
         spare = previous;
@@ -60,17 +65,6 @@ fn part_every(inputs: &str, iterations: usize) -> usize {
     println!("most common minus least common: {}", difference);
 
     difference
-}
-
-// mutates argument, just doing this for observability's sake
-fn hot_bit(i: usize, current: char, length: usize, polymer: &mut Vec<char>, previous: &Vec<char>, rules: &RulesDict) {
-    polymer.push(current);
-    let next_index = i + 1;
-    if next_index < length {
-        let next = previous[next_index];
-        let insertion = rules.get(&current).unwrap().get(&next).unwrap();
-        polymer.push(*insertion);
-    }
 }
 
 fn count_elements(polymer: Vec<char>) -> HashMap<char, usize> {
