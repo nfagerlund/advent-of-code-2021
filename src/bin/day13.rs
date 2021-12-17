@@ -14,10 +14,10 @@ fn part_two(_inputs: &str) {}
 fn part_one(inputs: &str) -> usize {
     let (grid, folds) = parse_inputs(inputs);
     println!("The stuff is here:");
-    dbg!(&grid);
-    dbg!(&folds);
+    // dbg!(&grid);
+    // dbg!(&folds);
     let new_grid = grid.crease(&folds[0]);
-    dbg!(&new_grid);
+    // dbg!(&new_grid);
     let count = new_grid.tiles().filter(|t| *(new_grid.get_tile_value(*t).unwrap()) ).count();
     dbg!(count);
     count
@@ -31,7 +31,24 @@ impl DotGrid for Grid<bool> {
     fn crease(&self, fold: &Fold) -> Grid<bool> {
         match fold.axis {
             Axis::X => {
-                panic!("I'm baby!!");
+                let mut creased_data = self.data.clone();
+                for row in creased_data.iter_mut() {
+                    let right_part = row.split_off(fold.coordinate + 1);
+                    // throw away the crease line
+                    row.pop();
+                    // OR the items on the row:
+                    for (index, val) in right_part.iter().enumerate() {
+                        let left_slot = (row.len() - 1).checked_sub(index);
+                        match left_slot {
+                            None => panic!("Folded a larger right than left! need to implement this still."),
+                            Some(left_slot) => {
+                                let left_val = row[left_slot];
+                                row[left_slot] = left_val || *val;
+                            }
+                        }
+                    }
+                }
+                Grid::new(creased_data)
             },
             Axis::Y => {
                 let mut creased_data = self.data.clone();
@@ -48,7 +65,7 @@ impl DotGrid for Grid<bool> {
                         Some(top_row) => {
                             for (col, val) in row.iter().enumerate() {
                                 let top_val = creased_data[top_row][col];
-                                creased_data[top_row][col] = (top_val || *val);
+                                creased_data[top_row][col] = top_val || *val;
                             }
                         },
                     }
