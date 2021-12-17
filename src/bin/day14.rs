@@ -1,5 +1,6 @@
 use advent21::*;
 use std::collections::HashMap;
+use std::cmp;
 
 // the one with inserting atoms into a molecule
 fn main() {
@@ -18,11 +19,53 @@ fn part_two(_inputs: &str) {}
 // - Do something funky with the "pairs" issue.
 fn part_one(inputs: &str) -> usize {
     let (template, rules) = parse_inputs(inputs);
-    println!("the stuff is here:");
-    dbg!(&template);
-    dbg!(&rules);
+    println!("the stuff is here.");
+    // dbg!(&template);
+    // dbg!(&rules);
+    let mut polymer = template; // a move
+    let mut spare: Vec<char> = Vec::new();
 
-    0
+    // ok 3, 2, 1, lets jam
+    for _ in 0..10 {
+        let previous = polymer; // a move
+        polymer = spare; // a move
+        polymer.clear();
+        let length = previous.len();
+
+        for i in 0..length {
+            let current = previous[i];
+            polymer.push(current);
+            let next_index = i + 1;
+            if next_index < length {
+                let next = previous[next_index];
+                let insertion = rules.get(&current).unwrap().get(&next).unwrap();
+                polymer.push(*insertion);
+            }
+        }
+        // reduce reuse recycle
+        spare = previous;
+    }
+
+    // I think that's our molecule:
+    // println!("{:?}", &polymer);
+    println!("{} chars long", polymer.len());
+    let count = count_elements(polymer); // consumes polymer
+    dbg!(&count);
+    let max = count.iter().fold(0, |accum, (_, num)| cmp::max(accum, *num));
+    let min = count.iter().fold(usize::MAX, |accum, (_, num)| cmp::min(accum, *num));
+    let difference = max - min;
+    println!("most common minus least common: {}", difference);
+
+    difference
+}
+
+fn count_elements(polymer: Vec<char>) -> HashMap<char, usize> {
+    let mut count: HashMap<char, usize> = HashMap::new();
+    for ch in polymer {
+        let num = count.entry(ch).or_insert(0);
+        *num += 1;
+    }
+    count
 }
 
 fn parse_inputs(inputs: &str) -> (Vec<char>, RulesDict) {
