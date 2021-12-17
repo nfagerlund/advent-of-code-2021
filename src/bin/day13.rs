@@ -16,8 +16,47 @@ fn part_one(inputs: &str) -> usize {
     println!("The stuff is here:");
     dbg!(&grid);
     dbg!(&folds);
+    let new_grid = grid.crease(&folds[0]);
+    dbg!(&new_grid);
+    let count = new_grid.tiles().filter(|t| *(new_grid.get_tile_value(*t).unwrap()) ).count();
+    dbg!(count);
+    count
+}
 
-    0
+trait DotGrid {
+    fn crease(&self, fold: &Fold) -> Grid<bool>;
+}
+
+impl DotGrid for Grid<bool> {
+    fn crease(&self, fold: &Fold) -> Grid<bool> {
+        match fold.axis {
+            Axis::X => {
+                panic!("I'm baby!!");
+            },
+            Axis::Y => {
+                let mut creased_data = self.data.clone();
+                let bottom_part = creased_data.split_off(fold.coordinate + 1);
+                // throw away the crease line
+                creased_data.pop();
+                // OR the rows, working backwards on the top and forwards on the bottom
+                for (index, row) in bottom_part.iter().enumerate() {
+                    let top_row = (creased_data.len() - 1).checked_sub(index);
+                    match top_row {
+                        None => {
+                            panic!("Folded a larger bottom than top! Need to implement this still. (.insert, etc.)");
+                        },
+                        Some(top_row) => {
+                            for (col, val) in row.iter().enumerate() {
+                                let top_val = creased_data[top_row][col];
+                                creased_data[top_row][col] = (top_val || *val);
+                            }
+                        },
+                    }
+                }
+                Grid::new(creased_data)
+            },
+        }
+    }
 }
 
 #[derive(Debug)]

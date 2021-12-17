@@ -20,7 +20,9 @@ pub mod grid {
     /// A grid using game-like coordinates (i.e. 0,0 => upper left corner).
     #[derive(Debug)]
     pub struct Grid<T> {
-        data: Vec<Vec<T>>, // vec of rows of values
+        // ok, don't mess with this willy-nilly, but having it private becomes a
+        // pain in the ass p. quick, so fine.
+        pub data: Vec<Vec<T>>, // vec of rows of values
     }
 
     pub type Tile = (usize, usize);
