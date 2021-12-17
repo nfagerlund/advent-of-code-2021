@@ -32,6 +32,7 @@ fn part_every(inputs: &str, iterations: usize) -> usize {
     // dbg!(&rules);
     let mut polymer = template; // a move
     let mut spare: Vec<char> = Vec::new();
+    let mut big_long: usize = 4;
 
     // ok 3, 2, 1, lets jam
     for i in 0..iterations {
@@ -40,11 +41,14 @@ fn part_every(inputs: &str, iterations: usize) -> usize {
         polymer = spare; // a move
         polymer.clear();
         let length = previous.len();
+        let mut n = 0;
 
-        for i in 0..length {
-            polymer.push('x');
-            polymer.push('x');
+        for i in 0..big_long {
+            n = i;
         }
+        dbg!(n);
+        big_long = big_long * 2;
+        dbg!(big_long);
         // reduce reuse recycle
         spare = previous;
     }
