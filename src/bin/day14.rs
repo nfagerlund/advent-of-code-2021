@@ -32,7 +32,7 @@ fn part_every(inputs: &str, iterations: usize) -> usize {
     // dbg!(&rules);
     let mut polymer = template; // a move
     let mut spare: Vec<char> = Vec::new();
-    let mut big_long: usize = 4;
+    let mut big_long: usize = 20;
 
     // ok 3, 2, 1, lets jam
     for i in 0..iterations {
@@ -47,7 +47,7 @@ fn part_every(inputs: &str, iterations: usize) -> usize {
             n = i;
         }
         dbg!(n);
-        big_long = big_long * 2;
+        big_long = big_long * 2 - 1;
         dbg!(big_long);
         // reduce reuse recycle
         spare = previous;
@@ -60,10 +60,11 @@ fn part_every(inputs: &str, iterations: usize) -> usize {
     dbg!(&count);
     let max = count.iter().fold(0, |accum, (_, num)| cmp::max(accum, *num));
     let min = count.iter().fold(usize::MAX, |accum, (_, num)| cmp::min(accum, *num));
-    let difference = max - min;
-    println!("most common minus least common: {}", difference);
+    // let difference = max - min;
+    // println!("most common minus least common: {}", difference);
 
-    difference
+    // difference
+0
 }
 
 fn count_elements(polymer: Vec<char>) -> HashMap<char, usize> {
