@@ -76,8 +76,8 @@ fn part_every(inputs: &str, iterations: usize) -> usize {
     difference
 }
 
-fn part_every_unusable(inputs: &str, iterations: usize) -> usize {
-    let (template, rules) = parse_inputs(inputs);
+fn _part_every_unusable(inputs: &str, iterations: usize) -> usize {
+    let (template, rules) = _parse_inputs(inputs);
     println!("the stuff is here.");
     // dbg!(&template);
     // dbg!(&rules);
@@ -108,7 +108,7 @@ fn part_every_unusable(inputs: &str, iterations: usize) -> usize {
     // I think that's our molecule:
     // println!("{:?}", &polymer);
     println!("{} chars long", polymer.len());
-    let count = count_elements(polymer); // consumes polymer
+    let count = _count_elements(polymer); // consumes polymer
     dbg!(&count);
     let max = count.iter().fold(0, |accum, (_, num)| cmp::max(accum, *num));
     let min = count.iter().fold(usize::MAX, |accum, (_, num)| cmp::min(accum, *num));
@@ -118,7 +118,7 @@ fn part_every_unusable(inputs: &str, iterations: usize) -> usize {
     difference
 }
 
-fn count_elements(polymer: Vec<char>) -> HashMap<char, usize> {
+fn _count_elements(polymer: Vec<char>) -> HashMap<char, usize> {
     let mut count: HashMap<char, usize> = HashMap::new();
     for ch in polymer {
         let num = count.entry(ch).or_insert(0);
@@ -145,16 +145,14 @@ fn count_elements_from_pairs(pair_counts: &HashMap<&str, usize>, first_element: 
     element_counts
 }
 
-fn parse_inputs(inputs: &str) -> (Vec<char>, RulesDict) {
+fn _parse_inputs(inputs: &str) -> (Vec<char>, HashMap<char, HashMap<char, char>>) {
     let (template, rules) = inputs.split_once("\n\n").unwrap();
-    (parse_polymer_template(template), parse_insertion_rules(rules))
+    (_parse_polymer_template(template), _parse_insertion_rules(rules))
 }
 
-type RulesDict = HashMap<char, HashMap<char, char>>;
-
 // rules[first][second] = insertion
-fn parse_insertion_rules(inputs: &str) -> RulesDict {
-    let mut rules: RulesDict  = HashMap::new();
+fn _parse_insertion_rules(inputs: &str) -> HashMap<char, HashMap<char, char>> {
+    let mut rules: HashMap<char, HashMap<char, char>>  = HashMap::new();
 
     for line in inputs.lines() {
         let (pair, insertion) = line.split_once(" -> ").unwrap();
@@ -218,7 +216,7 @@ fn parse_insertion_rules_for_cheaters(inputs: &str) -> HashMap<&str, (&str, &str
     rules
 }
 
-fn parse_polymer_template(inputs: &str) -> Vec<char> {
+fn _parse_polymer_template(inputs: &str) -> Vec<char> {
     inputs.chars().collect()
 }
 
