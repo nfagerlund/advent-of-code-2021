@@ -27,9 +27,26 @@ fn part_one(inputs: &str) -> usize {
 
 fn part_every(inputs: &str, iterations: usize) -> usize {
     let (template, rules) = inputs.split_once("\n\n").unwrap();
-    let template = parse_polymer_template(template);
+    // let template = parse_polymer_template(template);
+    // On further consideration, do NOT parse the polymer template further. Just use the &str.
     let rules = parse_insertion_rules_for_cheaters(rules);
-    println!("The stuff is here:\n{:#?}", &rules);
+    // println!("The stuff is here:\n{:#?}", &rules);
+
+    let first_element = template.chars().next().unwrap();
+    let last_element = template.chars().last().unwrap();
+    let mut pair_counts: HashMap<&str, usize> = HashMap::new();
+    let mut pair_scratchpad: HashMap<&str, usize> = HashMap::new();
+
+    // OK, populate initial pair counts
+    for i in 0..template.len() {
+        if i + 1 < template.len() {
+            // We know this is ascii, so we're fine to go slicing.
+            let pair = &template[i..=(i + 1)];
+            let count_entry = pair_counts.entry(pair).or_insert(0);
+            *count_entry += 1;
+        }
+    }
+    println!("The other stuff is here: \n{:#?}", &pair_counts);
 
     0
 }
