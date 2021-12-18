@@ -5,4 +5,9 @@ fn main() {
     dupe[0].push(990);
     dbg!(&original);
     dbg!(&dupe);
+    // can I string from char?
+    let mut sss = String::from('s');
+    sss.push('s');
+    sss.push_str("s");
+    dbg!(sss);
 }
