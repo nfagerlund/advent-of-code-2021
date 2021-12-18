@@ -136,15 +136,13 @@ fn parse_insertion_rules_for_cheaters(inputs: &str) -> HashMap<&str, (&str, &str
         let p1 = pair.chars().next().unwrap();
         let mut p1 = String::from(p1);
         p1.push_str(insertion);
-        let p1_entry = wip_rules.entry(&p1);
-        let p1_laundered = p1_entry.key();
+        let (p1_laundered, _) = wip_rules.get_key_value(&p1[..]).unwrap();
         let p1_laundered = *p1_laundered;
 
         let p2 = pair.chars().last().unwrap();
         let mut p2 = String::from(p2);
         p2.push_str(insertion);
-        let p2_entry = wip_rules.entry(&p2);
-        let p2_laundered = p2_entry.key();
+        let (p2_laundered, _) = wip_rules.get_key_value(&p2[..]).unwrap();
         let p2_laundered = *p2_laundered;
 
         // lol nasty
