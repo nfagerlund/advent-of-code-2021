@@ -26,6 +26,15 @@ fn part_one(inputs: &str) -> usize {
 }
 
 fn part_every(inputs: &str, iterations: usize) -> usize {
+    let (template, rules) = inputs.split_once("\n\n").unwrap();
+    let template = parse_polymer_template(template);
+    let rules = parse_insertion_rules_for_cheaters(rules);
+    println!("The stuff is here:\n{:#?}", &rules);
+
+    0
+}
+
+fn part_every_unusable(inputs: &str, iterations: usize) -> usize {
     let (template, rules) = parse_inputs(inputs);
     println!("the stuff is here.");
     // dbg!(&template);
@@ -98,9 +107,81 @@ fn parse_insertion_rules(inputs: &str) -> RulesDict {
     rules
 }
 
+// Ok, we're going to be increasing counters, for this one. That means we need
+// to get back keys to know which two pair counters to increase for a given
+// source pair, and we'll end up increasing them by the amount of that source
+// pair we have. I figure we're storing the counters in a HashMap<&str, usize>.
+// We'll need a WIP hashmap to tally things up in before we combine them at the
+// end of the step, I think, since these are all meant to happen simultaneously.
+// Oh, wait, if I'm gonna borrow a &str for the hash keys, I need to borrow it
+// from somewhere -- it's not gonna exist verbatim in the inputs...? No wait, it
+// will, because the inputs have every pair we'll ever see. It's just.. might be
+// tricky to grab it when we want it. Okay, sure, let's do some weird borrowing
+// gymnastics.
+fn parse_insertion_rules_for_cheaters(inputs: &str) -> HashMap<&str, (&str, &str)> {
+    let mut wip_rules: HashMap<&str, Option<(&str, &str)>> = HashMap::new();
+    // first pass: set all to none
+    for line in inputs.lines() {
+        let (pair, _) = line.split_once(" -> ").unwrap();
+        wip_rules.insert(pair, None);
+    }
+    // OK, now all the keys are slices from inputs! but if we call .insert again,
+    // it won't update the keys to be a new slice, it'll just do == on em! So we
+    // can construct keys willy-nilly without needing to keep their source
+    // alive.
+    // And!! we can use .entry().key() to get an original reference! &&str I think.
+    for line in inputs.lines() {
+        let (pair, insertion) = line.split_once(" -> ").unwrap();
+
+        let p1 = pair.chars().next().unwrap();
+        let mut p1 = String::from(p1);
+        p1.push_str(insertion);
+        let p1_entry = wip_rules.entry(&p1);
+        let p1_laundered = p1_entry.key();
+        let p1_laundered = *p1_laundered;
+
+        let p2 = pair.chars().last().unwrap();
+        let mut p2 = String::from(p2);
+        p2.push_str(insertion);
+        let p2_entry = wip_rules.entry(&p2);
+        let p2_laundered = p2_entry.key();
+        let p2_laundered = *p2_laundered;
+
+        // lol nasty
+
+        // ok...
+        wip_rules.insert(pair, Some((p1_laundered, p2_laundered)));
+    }
+
+    let mut rules: HashMap<&str, (&str, &str)> = HashMap::new();
+    // ok...
+    for (k, v) in wip_rules.drain() {
+        rules.insert(k, v.unwrap());
+    }
+    rules
+}
+
 fn parse_polymer_template(inputs: &str) -> Vec<char> {
     inputs.chars().collect()
 }
+
+// polymer analysis
+// NNCB
+// NN NC CB (pair counts for above)
+// NCNBCHB (real result)
+// NC CN NB BC CH HB (new pair counts: 6)
+//     (OH! okay, um,)
+// NBC CCN NBB BBC CBH HCB (intermediate computation bc eyes are x-ing)
+// NBCCNBBBCBHCB (real result)
+// NB BC CC CN NB BB BB BC CB BH HC CB (new pair counts: 12)
+
+// So, each pair transforms into two (arbitrary, must look up) different pairs on the next step, but the pairs aren't the polymer; they have some redundancy. Where's that redundancy at?
+
+// Oh! every letter except the first and last is included twice in the pair sets! So I think it's
+// - Remember first and last letter.
+// - Use multiplication to find letter counts from the pair sets.
+// - Divide each bucket in half.
+// - ADD first and last letter back to their respective buckets.
 
 #[cfg(test)]
 mod tests {
