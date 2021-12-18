@@ -46,9 +46,34 @@ fn part_every(inputs: &str, iterations: usize) -> usize {
             *count_entry += 1;
         }
     }
-    println!("The other stuff is here: \n{:#?}", &pair_counts);
+    // println!("The other stuff is here: \n{:#?}", &pair_counts);
 
-    0
+    for i in 0..iterations {
+        dbg!(i);
+        // Ah, oh wait, I think I still want to do the swap buffer thing with two hashmaps. cool.
+        pair_scratchpad.clear();
+        for (pair, count) in pair_counts.iter() {
+            let (p1, p2) = rules.get(pair).unwrap();
+            for new_pair in [p1, p2] {
+                let entry = pair_scratchpad.entry(new_pair).or_insert(0);
+                *entry += *count;
+            }
+        }
+        let temp = pair_counts; // move
+        pair_counts = pair_scratchpad; // move
+        pair_scratchpad = temp; // move
+    }
+
+    dbg!(&pair_counts);
+    let element_counts = count_elements_from_pairs(&pair_counts, first_element, last_element);
+    dbg!(&element_counts);
+
+    let max = element_counts.iter().fold(0, |accum, (_, num)| cmp::max(accum, *num));
+    let min = element_counts.iter().fold(usize::MAX, |accum, (_, num)| cmp::min(accum, *num));
+    let difference = max - min;
+    println!("most common minus least common: {}", difference);
+
+    difference
 }
 
 fn part_every_unusable(inputs: &str, iterations: usize) -> usize {
@@ -100,6 +125,24 @@ fn count_elements(polymer: Vec<char>) -> HashMap<char, usize> {
         *num += 1;
     }
     count
+}
+
+fn count_elements_from_pairs(pair_counts: &HashMap<&str, usize>, first_element: char, last_element: char) -> HashMap<char, usize> {
+    let mut element_counts: HashMap<char, usize> = HashMap::new();
+    for (pair, &count) in pair_counts.iter() {
+        for ch in pair.chars() {
+            let el_count = element_counts.entry(ch).or_insert(0);
+            *el_count += count;
+        }
+    }
+    for (_, count) in element_counts.iter_mut() {
+        *count = *count/2;
+    }
+    for special in [first_element, last_element] {
+        let special_count = element_counts.get_mut(&special).unwrap();
+        *special_count += 1;
+    }
+    element_counts
 }
 
 fn parse_inputs(inputs: &str) -> (Vec<char>, RulesDict) {
