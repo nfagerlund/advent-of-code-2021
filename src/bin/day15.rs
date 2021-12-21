@@ -1,7 +1,8 @@
 use advent21::*;
+use advent21::grid::*;
 
 // The one where yup, it's another grid, and you gotta do pathfinding to get the
-// lowest total score from top-left to bottom-right. A*?
+// lowest total score from top-left to bottom-right. It's totally A*.
 fn main() {
     let inputs = load_inputs("day15").unwrap();
     part_one(&inputs);
@@ -11,8 +12,23 @@ fn main() {
 fn part_two(_inputs: &str) {}
 
 fn part_one(inputs: &str) -> usize {
-
+    let grid = parse_inputs(inputs);
+    // println!("The stuff is here: \n{:#?}", &grid);
     0
+}
+
+fn parse_inputs (inputs: &str) -> Grid<usize> {
+    let grid_data: Vec<Vec<usize>> = inputs.lines().map(
+        |line| {
+            line.chars().map(
+                |ch| {
+                    let st = String::from(ch);
+                    usize_or_die(&st[..])
+                }
+            ).collect()
+        }
+    ).collect();
+    Grid::new(grid_data)
 }
 
 #[cfg(test)]
