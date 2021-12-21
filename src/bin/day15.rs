@@ -26,6 +26,19 @@ struct Path {
     cost: usize,
 }
 
+impl Path {
+    fn new(start: Tile) -> Path {
+        // Per the problem statement, your starting tile doesn't add to your
+        // cost. Only entering a tile bumps it!
+        Path { route: vec![start], cost: 0 }
+    }
+
+    fn head(&self) -> &Tile {
+        // We'll always have at least one tile in the route, so unwrap.
+        self.route.last().unwrap()
+    }
+}
+
 // Per the BinaryHeap docs, it's only a max heap but I can get a min heap by
 // defining a custom Ord. And I need that anyway because I only want to compare
 // paths by cost!
