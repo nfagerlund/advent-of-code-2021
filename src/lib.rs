@@ -14,14 +14,17 @@ pub fn i32_or_die(s: &str) -> i32 {
     i32::from_str_radix(s, 10).unwrap()
 }
 
+/// Tools for navigating and manipulating a grid of values, using unsigned x,y
+/// coordinates with the origin at the upper left corner.
 pub mod grid {
     use std::fmt;
 
     /// A grid using game-like coordinates (i.e. 0,0 => upper left corner).
     #[derive(Debug)]
     pub struct Grid<T> {
-        // ok, don't mess with this willy-nilly, but having it private becomes a
-        // pain in the ass p. quick, so fine.
+        /// A list of rows of values, i.e. it's organized Y-first. I shouldn't
+        /// generally fuss with this inner data value, but sometimes something
+        /// comes up, alas. Obviously I wouldn't publish this like this.
         pub data: Vec<Vec<T>>, // vec of rows of values
     }
 
@@ -42,14 +45,27 @@ pub mod grid {
     }
 
     impl<T> Grid<T> {
+        /// Provide an inner data value to create a new grid. Because I can't
+        /// predict the future quite well enough, I'm going to just rely on the
+        /// caller to sort out how to organize the data.
+        ///
+        /// Invariants: The width of every row needs to be consistent when you
+        /// create the grid! Expect everything to blow up if it's not.
         pub fn new(data: Vec<Vec<T>>) -> Grid<T> {
             Grid { data }
         }
 
+        /// Get the height of the grid.
         pub fn height(&self) -> usize { self.data.len() }
-        // Constructor is in charge of not giving us inconsistent widths! I'm still not checking.
+        /// Get the width of the grid.
         pub fn width(&self) -> usize { self.data[0].len() }
 
+        /// Returns a boxed (sigh) iterator over the entire set of tile
+        /// coordinates in this grid. (NOT their associated values; gotta get
+        /// those yourself.) I would like this to return an impl Iterator
+        /// instead, but I can't quite manage the illegal borrows that happen
+        /// when you try to get a value for a tile while iterating over the tile
+        /// coordinates.
         pub fn tiles(&self) -> Box<dyn Iterator<Item = Tile>> {
             let height = self.height();
             let width = self.width();
@@ -59,10 +75,11 @@ pub mod grid {
             Box::new(tiles_iter)
         }
 
-        /// Returns an immutable reference to the value in a tile. `None` means the
-        /// coordinates in the requested tile are out of bounds; in curent
-        /// implementation, every tile has to have a valid value, so you gotta use
-        /// an Option of your own if some tiles need empty values.
+        /// Returns an Option of an immutable reference to the value in a tile.
+        /// `None` means the coordinates in the requested tile are out of
+        /// bounds; in curent implementation, every tile has to have a valid
+        /// value, so you gotta use an Option of your own if some tiles need
+        /// empty values.
         pub fn get_tile_value(&self, tile: Tile) -> Option<&T> {
             let (x, y) = tile;
             match self.data.get(y) { // row
@@ -76,7 +93,8 @@ pub mod grid {
             }
         }
 
-        /// Same as before but mutable reference.
+        /// Returns an Option of a mutable reference to the value in a tile.
+        /// `None` means the requested coordinates were out of bounds.
         pub fn get_tile_value_mut(&mut self, tile: Tile) -> Option<&mut T> {
             let (x, y) = tile;
             match self.data.get_mut(y) { // row
@@ -90,6 +108,7 @@ pub mod grid {
             }
         }
 
+        /// Set a new value for a tile.
         pub fn set_tile_value(&mut self, tile: Tile, value: T) -> Result<(), OutOfBoundsError> {
             match self.get_tile_value_mut(tile) {
                 None => Err(OutOfBoundsError),
@@ -180,7 +199,9 @@ pub mod grid {
             None
         }
 
-        // get coords
+        /// Get the coordinates of neighbors of a given tile, in the cardinal
+        /// directions only. Since some neighbor directions might be out of
+        /// bounds, this returns a `Vec<Option<Tile>>` for each direction.
         pub fn get_neighbors_cardinal(&self, tile: Tile) -> Vec<Option<Tile>> {
             vec![
                 self.get_neighbor_n(tile),
@@ -189,6 +210,7 @@ pub mod grid {
                 self.get_neighbor_w(tile),
             ]
         }
+        /// Get the coordinates of the DIAGONAL neighbors of a given tile.
         pub fn get_neighbors_ordinal(&self, tile: Tile) -> Vec<Option<Tile>> {
             vec![
                 self.get_neighbor_ne(tile),
@@ -197,6 +219,8 @@ pub mod grid {
                 self.get_neighbor_sw(tile),
             ]
         }
+        /// Get the coordinates of all eight neighbors (cardinal and ordinal
+        /// directions) of a given tile.
         pub fn get_neighbors_all(&self, tile: Tile) -> Vec<Option<Tile>> {
             let mut neighbors = self.get_neighbors_cardinal(tile);
             let mut ordinal_neighbors = self.get_neighbors_ordinal(tile);
