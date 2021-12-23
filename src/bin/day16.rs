@@ -14,6 +14,15 @@ fn part_one(inputs: &str) -> usize {
     0
 }
 
+fn packet_bits_iterator(hex: &str) -> impl Iterator<Item = char> + '_ {
+    hex.chars().map(|ch| {
+        let num = ch.to_digit(16).unwrap();
+        let bits_string = format!("{:b}", num);
+        let bits: Vec<char> = bits_string.chars().collect();
+        bits
+    }).flatten()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -36,5 +45,17 @@ mod tests {
         let answer = ();
         let result = part_two(EXAMPLE);
         assert_eq!(result, answer);
+    }
+
+    #[test]
+    fn reliably_iterate_bits() {
+        let example_str = "A0016C880162017C3686B18A3D4780";
+        let control_val: u128 = u128::from_str_radix(example_str, 16).unwrap();
+        let control_bits_string = format!("{:b}", control_val);
+        let mut test_bits_string = String::new();
+        for ch in packet_bits_iterator(example_str) {
+            test_bits_string.push(ch);
+        }
+        assert_eq!(control_bits_string, test_bits_string);
     }
 }
