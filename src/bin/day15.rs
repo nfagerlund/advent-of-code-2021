@@ -230,23 +230,27 @@ fn parse_inputs_hugely(inputs: &str) -> Grid<usize> {
         }).collect();
         let mut row: Vec<usize> = Vec::with_capacity(base_row.len() * 5);
         for i in 0_usize..5 {
-            row.extend(bump_and_mod9_row(&base_row, i));
+            row.extend(bump_and_wrap9_row(&base_row, i));
         }
         row
     }).collect();
     let mut data: Vec<Vec<usize>> = Vec::with_capacity(first_mega_row.len() * 5);
     for i in 0_usize..5 {
         for row in first_mega_row.iter() {
-            data.push(bump_and_mod9_row(row, i).collect());
+            data.push(bump_and_wrap9_row(row, i).collect());
         }
     }
     Grid::new(data)
 }
 
-fn bump_and_mod9_row(row: &Vec<usize>, bump: usize) -> impl Iterator<Item = usize> + '_ {
+fn bump_and_wrap9_row(row: &Vec<usize>, bump: usize) -> impl Iterator<Item = usize> + '_ {
     row.iter().map(move |num| {
         let bumped = *num + bump;
-        bumped % 9
+        if bumped > 9 {
+            bumped - 9
+        } else {
+            bumped
+        }
     })
 }
 
