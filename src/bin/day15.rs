@@ -19,6 +19,14 @@ fn part_two(_inputs: &str) {}
 fn part_one(inputs: &str) -> usize {
     let grid = parse_inputs(inputs);
     // println!("The stuff is here: \n{:#?}", &grid);
+    let end = (grid.width() - 1, grid.height() - 1);
+    let start: (usize, usize) = (0,0);
+    let mut pathfinder = PathFinder::new(grid, start, end);
+    println!("The other stuff is here: \n{:#?}", &pathfinder);
+    pathfinder.step();
+    pathfinder.step();
+    pathfinder.step();
+    println!("The updated stuff is here: \nRoutes:\n{:#?}\n\nFrontier:\n{:#?}", &pathfinder.routes, &pathfinder.priority_frontier);
     0
 }
 
@@ -26,7 +34,7 @@ fn part_one(inputs: &str) -> usize {
 /// the path embedded in it in the form of its cost, but it expects to be used
 /// along with a global lookup table so you can find the came_from of its
 /// came_from. Is this getting too heavyweight? Hard to say yet.
-#[derive(Eq, PartialEq, Clone, Copy)]
+#[derive(Eq, PartialEq, Clone, Copy, Debug)]
 struct Route {
     tile: Tile,
     came_from: Option<Tile>,
@@ -75,6 +83,7 @@ impl PartialOrd for Route {
 // compare all fields on those.????
 
 // Actually, let's wrap some of these data structure updates.
+#[derive(Debug)]
 struct PathFinder {
     priority_frontier: BinaryHeap<Route>,
     routes: HashMap<Tile, Route>,
