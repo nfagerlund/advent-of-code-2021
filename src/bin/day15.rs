@@ -30,6 +30,7 @@ fn part_one(inputs: &str) -> usize {
 struct Route {
     came_from: Option<Tile>,
     cost: usize,
+    distance_remaining: usize,
 }
 
 /// Oh hmm, I think I misunderstood something in my imagined version of this. I
@@ -45,15 +46,27 @@ struct Route {
 // Per the BinaryHeap docs, it's only a max heap but I can get a min heap by
 // defining a custom Ord. And I need that anyway because I only want to compare
 // paths by cost!
-impl Ord for Route {
-    fn cmp(&self, other: &Self) -> Ordering {
+impl Route {
+    /// Normal ordering: lesser is cheaper!
+    fn cmp_cost(&self, other: &Self) -> Ordering {
         // reversed
         other.cost.cmp(&self.cost)
     }
+    /// The heuristic total we use for deciding which route is most promising.
+    /// AKA "f"
+    fn est_total(&self) -> usize {
+        self.cost + self.distance_remaining
+    }
+}
+impl Ord for Route {
+    /// Reversed ordering: greater is cheaper, based on cost + heuristic!
+    fn cmp(&self, other: &Self) -> Ordering {
+        other.est_total().cmp(&self.est_total())
+    }
 }
 impl PartialOrd for Route {
+    /// Normal ordering: don't double-reverse, just inherit from cmp.
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        // but don't double-reverse.
         Some(self.cmp(&other))
     }
 }
@@ -66,9 +79,10 @@ struct PathFinder {
     routes: HashMap<Tile, Route>,
     start: Tile,
     end: Tile,
+    grid: Grid<usize>,
 }
 impl PathFinder {
-    fn new(start: Tile, end: Tile) -> Self {
+    fn new(grid: Grid<usize>, start: Tile, end: Tile) -> Self {
         let mut priority_frontier = BinaryHeap::new();
         let mut routes = HashMap::new();
         // wow type inference is cool.
@@ -81,13 +95,14 @@ impl PathFinder {
             routes,
             start,
             end,
+            grid,
         }
     }
     fn hard_insert(&mut self, destination: Tile, route: Route) {
         self.priority_frontier.push(destination);
         self.routes.insert(destination, route);
     }
-    fn visit(&mut self, destination: Tile, route: Route) {
+    fn add(&mut self, destination: Tile, route: Route) {
         // 1. I think Routes are Copy, fingers crossed.
         // 2. Only want to add if it's better than current route to this dest.
         // Also: could early-exit for case of start, but it's not needed.
@@ -98,11 +113,8 @@ impl PathFinder {
             },
             Some(old_route) => {
                 // not sure yet:
-                match route.cmp(old_route) {
-                    Ordering::Greater => {
-                        // Remember we did a custom Ord? So that means if the
-                        // new route is Greater than the old one, it has a lower
-                        // cost. Greater == Better.
+                match route.cmp_cost(old_route) {
+                    Ordering::Less => {
                         self.hard_insert(destination, route);
                     },
                     _ => {}, // Current route's better, keep it.
@@ -110,9 +122,15 @@ impl PathFinder {
             },
         };
     }
+    /// Returns None if there's no steps left to take.
+    fn step(&mut self) -> Option<()> {
+        if let Some(current) = self.priority_frontier.pop() {
+
+        }
+    }
 
     /// Panics if we haven't yet reached the end of the road.
-    /// (full_path, cost)
+    /// Returns (full_path, cost)
     fn reconstruct_path(&self) -> (Vec<Tile>, usize) {
         let mut path = Vec::new();
         path.push(self.end);
