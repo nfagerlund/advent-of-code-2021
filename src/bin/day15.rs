@@ -18,16 +18,13 @@ fn part_two(_inputs: &str) {}
 
 fn part_one(inputs: &str) -> usize {
     let grid = parse_inputs(inputs);
-    // println!("The stuff is here: \n{:#?}", &grid);
     let end = (grid.width() - 1, grid.height() - 1);
     let start: (usize, usize) = (0,0);
     let mut pathfinder = PathFinder::new(grid, start, end);
-    println!("The other stuff is here: \n{:#?}", &pathfinder);
-    pathfinder.step();
-    pathfinder.step();
-    pathfinder.step();
-    println!("The updated stuff is here: \nRoutes:\n{:#?}\n\nFrontier:\n{:#?}", &pathfinder.routes, &pathfinder.priority_frontier);
-    0
+    pathfinder.traverse();
+    let final_cost = pathfinder.final_cost();
+    println!("Final cost of best path: {}", final_cost);
+    final_cost
 }
 
 /// Route represents a single step of the journey. It has some of the history of
@@ -131,7 +128,6 @@ impl PathFinder {
             },
             Some(old_route) => {
                 // not sure yet:
-                println!("Compare: via {:?} vs via {:?} - {:?}", route.cost_so_far, old_route.cost_so_far, route.cmp_cost(old_route));
                 match route.cmp_cost(old_route) {
                     Ordering::Less => {
                         self.definitely_add(destination, route);
@@ -143,18 +139,17 @@ impl PathFinder {
     }
     fn make_route(&self, destination: Tile, came_from: Tile, cost_so_far: usize) -> Route {
         let step_cost = self.grid.get_tile_value(destination).unwrap();
-        let route = Route {
+        Route {
             tile: destination,
             came_from: Some(came_from),
             cost_so_far: cost_so_far + *step_cost,
             h_distance: self.heuristic(destination),
-        };
-        dbg!(route);
-        route
+        }
     }
     /// Returns None if there's no steps left to take.
     fn step(&mut self) -> Option<()> {
         if let Some(current) = self.priority_frontier.pop() {
+            println!("Current best bet:\n{:?}", &current);
             let cost_so_far = current.cost_so_far;
             let came_from = current.tile;
             for neighbor in self.grid.get_neighbors_cardinal(current.tile) {
@@ -172,6 +167,11 @@ impl PathFinder {
     }
     fn traverse(&mut self) {
         while let Some(_) = self.step() {}; // I think??
+    }
+
+    /// Panics if we haven't yet reached the end of the road.
+    fn final_cost(&self) -> usize {
+        self.routes.get(&self.end).unwrap().cost_so_far
     }
 
     /// Panics if we haven't yet reached the end of the road.
