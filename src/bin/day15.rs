@@ -149,7 +149,7 @@ impl PathFinder {
     /// Returns None if there's no steps left to take.
     fn step(&mut self) -> Option<()> {
         if let Some(current) = self.priority_frontier.pop() {
-            println!("Current best bet:\n{:?}", &current);
+            // println!("Current best bet:\n{:?}", &current);
             let cost_so_far = current.cost_so_far;
             let came_from = current.tile;
             for neighbor in self.grid.get_neighbors_cardinal(current.tile) {
