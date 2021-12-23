@@ -14,7 +14,16 @@ fn main() {
     part_two(&inputs);
 }
 
-fn part_two(_inputs: &str) {}
+fn part_two(inputs: &str) -> usize {
+    let grid = parse_inputs_hugely(inputs);
+    let end = (grid.width() - 1, grid.height() - 1);
+    let start: (usize, usize) = (0,0);
+    let mut pathfinder = PathFinder::new(grid, start, end);
+    pathfinder.traverse();
+    let final_cost = pathfinder.final_cost();
+    println!("Final cost of best HUUUUGGGGEE path: {}", final_cost);
+    final_cost
+}
 
 fn part_one(inputs: &str) -> usize {
     let grid = parse_inputs(inputs);
@@ -278,7 +287,7 @@ mod tests {
 
     #[test]
     fn example_part_two() {
-        let answer = ();
+        let answer = 315;
         let result = part_two(EXAMPLE);
         assert_eq!(result, answer);
     }
