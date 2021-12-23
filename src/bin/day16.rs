@@ -43,6 +43,11 @@ fn num_from_charbits(bits: &Vec<char>) -> usize {
     })
 }
 
+fn take_number<T: Iterator<Item = char>>(iter: &mut T, n: usize) -> usize {
+    let charbits = take_n(iter, n);
+    num_from_charbits(&charbits)
+}
+
 fn packet_bits_iterator(hex: &str) -> impl Iterator<Item = char> + '_ {
     hex.chars().map(|ch| {
         let num = ch.to_digit(16).unwrap();
