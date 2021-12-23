@@ -22,22 +22,9 @@ fn main() {
     // input into a number and work from there! it's too big!!! I didn't really
     // understand the scale there. So we'll need to take a bite at a time.
 
-    // Custom iterator? Custom iterator. or at least just an adapter in a biscuit.
-    let mut some_iter = packet_bits_iterator("A0016C880162017C3686B18A3D4780");
-    // Hmm, uh oh!
-    let mut temp = String::new();
-    for ch in some_iter {
-        temp.push(ch);
-    }
-    println!("{}", temp);
-}
-
-// SIGH, have to copy-paste bc can't improt from a binary
-fn packet_bits_iterator(hex: &str) -> impl Iterator<Item = char> + '_ {
-    hex.chars().map(|ch| {
-        let num = ch.to_digit(16).unwrap();
-        let bits_string = format!("{:b}", num);
-        let bits: Vec<char> = bits_string.chars().collect();
-        bits
-    }).flatten()
+    // Hey, does .take() consume an iterator?
+    // let mut chars = "A0016C880162017C3686B18A3D4780".chars();
+    // let first = chars.take(3);
+    // let second = chars.take(3);
+    // IT DOES. sigh.
 }
