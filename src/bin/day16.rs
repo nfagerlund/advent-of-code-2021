@@ -17,7 +17,7 @@ fn part_one(inputs: &str) -> usize {
 fn packet_bits_iterator(hex: &str) -> impl Iterator<Item = char> + '_ {
     hex.chars().map(|ch| {
         let num = ch.to_digit(16).unwrap();
-        let bits_string = format!("{:b}", num);
+        let bits_string = format!("{:04b}", num);
         let bits: Vec<char> = bits_string.chars().collect();
         bits
     }).flatten()
