@@ -59,7 +59,7 @@ impl Route {
     /// Normal ordering: lesser is cheaper!
     fn cmp_cost(&self, other: &Self) -> Ordering {
         // reversed
-        other.cost_so_far.cmp(&self.cost_so_far)
+        self.cost_so_far.cmp(&other.cost_so_far)
     }
     /// The heuristic total we use for deciding which route is most promising.
     /// AKA "f" (= g + h)
@@ -131,6 +131,7 @@ impl PathFinder {
             },
             Some(old_route) => {
                 // not sure yet:
+                println!("Compare: via {:?} vs via {:?} - {:?}", route.cost_so_far, old_route.cost_so_far, route.cmp_cost(old_route));
                 match route.cmp_cost(old_route) {
                     Ordering::Less => {
                         self.definitely_add(destination, route);
@@ -142,12 +143,14 @@ impl PathFinder {
     }
     fn make_route(&self, destination: Tile, came_from: Tile, cost_so_far: usize) -> Route {
         let step_cost = self.grid.get_tile_value(destination).unwrap();
-        Route {
+        let route = Route {
             tile: destination,
             came_from: Some(came_from),
             cost_so_far: cost_so_far + *step_cost,
             h_distance: self.heuristic(destination),
-        }
+        };
+        dbg!(route);
+        route
     }
     /// Returns None if there's no steps left to take.
     fn step(&mut self) -> Option<()> {
