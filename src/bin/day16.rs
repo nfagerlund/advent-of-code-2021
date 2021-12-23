@@ -9,9 +9,38 @@ fn main() {
 
 fn part_two(_inputs: &str) {}
 
+// okay uhhhhhhh let's not prematurely build-out on this one. Right now we're
+// just summing the version fields? So we need a stack to pop packets on and off
+// of, probably. And an accumulator. And as little as possible beyond that.
 fn part_one(inputs: &str) -> usize {
+    let mut bit_stream = packet_bits_iterator(inputs);
+    let parse_stack: Vec<SubPacketsState> = Vec::new();
 
     0
+}
+
+enum SubPacketsState {
+    Length(usize),
+    Count(usize),
+}
+
+/// This might return a vec with fewer than requested elements, if we flip past
+/// the end of the iterator.
+fn take_n<T: Iterator<Item = char>>(iter: &mut T, n: usize) -> Vec<char> {
+    let mut result = Vec::with_capacity(n);
+    for _ in 0..n {
+        if let Some(item) = iter.next() {
+            result.push(item);
+        }
+    }
+    result
+}
+
+fn num_from_charbits(bits: &Vec<char>) -> usize {
+    bits.iter().fold(0_usize, |accum, ch| {
+        let new_bit = ch.to_digit(2).unwrap() as usize;
+        (accum << 1) + new_bit
+    })
 }
 
 fn packet_bits_iterator(hex: &str) -> impl Iterator<Item = char> + '_ {
@@ -57,5 +86,19 @@ mod tests {
             test_bits_string.push(ch);
         }
         assert_eq!(control_bits_string, test_bits_string);
+    }
+
+    #[test]
+    fn reliably_take_n() {
+        let mut bits_iter = packet_bits_iterator("abc");
+        // 1010 1011 1100
+        assert_eq!(take_n(&mut bits_iter, 3), vec!['1', '0', '1']);
+        assert_eq!(take_n(&mut bits_iter, 3), vec!['0', '1', '0']);
+        assert_eq!(take_n(&mut bits_iter, 3), vec!['1', '1', '1']);
+    }
+
+    #[test]
+    fn reliably_parse_charbits() {
+        assert_eq!(num_from_charbits(&vec!['1', '0', '1']), 5);
     }
 }
