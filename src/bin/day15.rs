@@ -22,15 +22,16 @@ fn part_one(inputs: &str) -> usize {
     0
 }
 
-/// Route represents a single edge of the journey. It has some of the history of
+/// Route represents a single step of the journey. It has some of the history of
 /// the path embedded in it in the form of its cost, but it expects to be used
 /// along with a global lookup table so you can find the came_from of its
-/// came_from.
-#[derive(Eq, PartialEq)]
+/// came_from. Is this getting too heavyweight? Hard to say yet.
+#[derive(Eq, PartialEq, Clone, Copy)]
 struct Route {
+    tile: Tile,
     came_from: Option<Tile>,
-    cost: usize,
-    distance_remaining: usize,
+    cost_so_far: usize,
+    h_distance: usize,
 }
 
 /// Oh hmm, I think I misunderstood something in my imagined version of this. I
@@ -50,12 +51,12 @@ impl Route {
     /// Normal ordering: lesser is cheaper!
     fn cmp_cost(&self, other: &Self) -> Ordering {
         // reversed
-        other.cost.cmp(&self.cost)
+        other.cost_so_far.cmp(&self.cost_so_far)
     }
     /// The heuristic total we use for deciding which route is most promising.
-    /// AKA "f"
+    /// AKA "f" (= g + h)
     fn est_total(&self) -> usize {
-        self.cost + self.distance_remaining
+        self.cost_so_far + self.h_distance
     }
 }
 impl Ord for Route {
@@ -75,7 +76,7 @@ impl PartialOrd for Route {
 
 // Actually, let's wrap some of these data structure updates.
 struct PathFinder {
-    priority_frontier: BinaryHeap<Tile>,
+    priority_frontier: BinaryHeap<Route>,
     routes: HashMap<Tile, Route>,
     start: Tile,
     end: Tile,
@@ -86,9 +87,14 @@ impl PathFinder {
         let mut priority_frontier = BinaryHeap::new();
         let mut routes = HashMap::new();
         // wow type inference is cool.
-        priority_frontier.push(start);
-        let null_route = Route { came_from: None, cost: 0 };
-        routes.insert(start, null_route);
+        let start_route = Route {
+            tile: start,
+            came_from: None,
+            cost_so_far: 0,
+            h_distance: manhattan_distance(start, end),
+        };
+        routes.insert(start, start_route);
+        priority_frontier.push(start_route);
 
         PathFinder {
             priority_frontier,
@@ -98,35 +104,62 @@ impl PathFinder {
             grid,
         }
     }
-    fn hard_insert(&mut self, destination: Tile, route: Route) {
-        self.priority_frontier.push(destination);
+    fn heuristic(&self, tile: Tile) -> usize {
+        manhattan_distance(tile, self.end)
+    }
+    fn definitely_add(&mut self, destination: Tile, route: Route) {
+        self.priority_frontier.push(route);
         self.routes.insert(destination, route);
     }
-    fn add(&mut self, destination: Tile, route: Route) {
+    fn maybe_add(&mut self, destination: Tile, route: Route) {
         // 1. I think Routes are Copy, fingers crossed.
         // 2. Only want to add if it's better than current route to this dest.
         // Also: could early-exit for case of start, but it's not needed.
         match self.routes.get(&destination) {
             None => {
                 // Never been here! add it.
-                self.hard_insert(destination, route);
+                self.definitely_add(destination, route);
             },
             Some(old_route) => {
                 // not sure yet:
                 match route.cmp_cost(old_route) {
                     Ordering::Less => {
-                        self.hard_insert(destination, route);
+                        self.definitely_add(destination, route);
                     },
                     _ => {}, // Current route's better, keep it.
                 }
             },
         };
     }
+    fn make_route(&self, destination: Tile, came_from: Tile, cost_so_far: usize) -> Route {
+        let step_cost = self.grid.get_tile_value(destination).unwrap();
+        Route {
+            tile: destination,
+            came_from: Some(came_from),
+            cost_so_far: cost_so_far + *step_cost,
+            h_distance: self.heuristic(destination),
+        }
+    }
     /// Returns None if there's no steps left to take.
     fn step(&mut self) -> Option<()> {
         if let Some(current) = self.priority_frontier.pop() {
-
+            let cost_so_far = current.cost_so_far;
+            let came_from = current.tile;
+            for neighbor in self.grid.get_neighbors_cardinal(current.tile) {
+                if let Some(neighbor) = neighbor {
+                    let route = self.make_route(neighbor, came_from, cost_so_far);
+                    self.maybe_add(neighbor, route);
+                    if neighbor == self.end {
+                        return None; // just reached end
+                    }
+                }
+            }
+            return Some(()); // didn't reach end
         }
+        None // nothing left to pop, must have reached end.
+    }
+    fn traverse(&mut self) {
+        while let Some(_) = self.step() {}; // I think??
     }
 
     /// Panics if we haven't yet reached the end of the road.
@@ -135,11 +168,17 @@ impl PathFinder {
         let mut path = Vec::new();
         path.push(self.end);
         let mut currently = self.end;
-        let mut total_cost: usize = 0;
-        while let Some(Route{came_from: Some(came_from), cost}) = self.routes.get(&currently) {
+        let total_cost = self.routes.get(&self.end).unwrap().cost_so_far;
+        while let Some(
+            Route {
+                tile: _,
+                came_from: Some(came_from),
+                cost_so_far: _,
+                h_distance: _,
+            }
+        ) = self.routes.get(&currently) {
             path.push(*came_from);
             currently = *came_from;
-            total_cost += *cost;
         }
 
         (path, total_cost)
