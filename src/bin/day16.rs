@@ -15,6 +15,22 @@ fn part_two(_inputs: &str) {}
 fn part_one(inputs: &str) -> usize {
     let mut bit_stream = packet_bits_iterator(inputs);
     let parse_stack: Vec<SubPacketsState> = Vec::new();
+    let outer_ver = take_number(&mut bit_stream, 3);
+    let outer_type = take_number(&mut bit_stream, 3);
+    println!("outer packet\nver: {}\ntype: {}", outer_ver, outer_type);
+    if outer_type != 4 {
+        match bit_stream.next().unwrap() {
+            '0' => {
+                let length = take_number(&mut bit_stream, 15);
+                println!("bit-length mode: inner packets take {} bits", length);
+            },
+            '1' => {
+                let length = take_number(&mut bit_stream, 11);
+                println!("packet count mode: {} inner packets", length);
+            },
+            _ => panic!("wyd"),
+        };
+    }
 
     0
 }
