@@ -70,8 +70,50 @@ fn parse_bit_stream_step<T: Iterator<Item = char>>(
                 _ => ParseState::ParseLength,
             }
         },
-        ParseState::ParseValue => {},
-        ParseState::ParseLength => {},
+        ParseState::ParseValue => {
+            // lazy lazy
+            let current = stack.last_mut().unwrap();
+            // eating five bits no matter what:
+            current.encoded_size += 5;
+            let is_final_chunk = match take_number(bit_stream, 1) {
+                0 => true,
+                _ => false,
+            };
+            let chunk = take_number(bit_stream, 4);
+            // should always be true: vv
+            if let Contents::Literal(ref mut value) = current.contents {
+                *value += chunk;
+            }
+            // and return!
+            if is_final_chunk {
+                ParseState::EndPacket
+            } else {
+                ParseState::ParseValue
+            }
+        },
+        ParseState::ParseLength => {
+            let current = stack.last_mut().unwrap();
+            let length_type = take_number(bit_stream, 1);
+            match length_type {
+                0 => {
+                    // bits mode, length is next 15 bits.
+                    current.encoded_size += 1 + 15;
+                    let length = take_number(bit_stream, 15);
+                    current.length = Length::Bits(length);
+                },
+                1 => {
+                    // count mode, length is next 11 bits
+                    current.encoded_size += 1 + 11;
+                    let length = take_number(bit_stream, 11);
+                    current.length = Length::Count(length);
+                },
+                _ => panic!("wyd, thought this was bits"),
+            }
+            // and return! at this point, we just started an operator packet,
+            // its entire content will be composed of other packets. So, we
+            // unconditionally jump back to start packet.
+            ParseState::StartPacket
+        },
         ParseState::EndPacket => {},
         ParseState::Finished => {
             ParseState::Finished
