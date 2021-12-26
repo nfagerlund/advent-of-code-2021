@@ -14,7 +14,7 @@ fn part_two(_inputs: &str) {}
 // of, probably. And an accumulator. And as little as possible beyond that.
 fn part_one(inputs: &str) -> usize {
     let mut bit_stream = packet_bits_iterator(inputs);
-    let parse_stack: Vec<SubPacketsState> = Vec::new();
+    let parse_stack: Vec<Length> = Vec::new();
     let outer_ver = take_number(&mut bit_stream, 3);
     let outer_type = take_number(&mut bit_stream, 3);
     println!("outer packet\nver: {}\ntype: {}", outer_ver, outer_type);
@@ -35,9 +35,32 @@ fn part_one(inputs: &str) -> usize {
     0
 }
 
-enum SubPacketsState {
-    Length(usize),
+enum ParseState {
+    StartPacket, // get ver/type header, make & push packet skeleton, jump to ParseValue or ParseLength
+    ParseValue, // continue til done, then jump to EndPacket
+    ParseLength, // Determine length type and length, then jump to StartPacket (!)
+    EndPacket, // the big one. If there's no parent, leave packet on stack and jump to Finished. If there is a parent, pop packet off stack, add it to children of parent, decrement parent length. If parent length is exhausted, jump to EndPacket again; otherwise jump to StartPacket.
+    Finished, // do nothing forever.
+}
+
+enum Length {
+    Unknown,
+    Literal,
+    Bits(usize),
     Count(usize),
+}
+
+enum Contents {
+    Operator(Vec<Packet>),
+    Literal(usize),
+}
+
+struct Packet {
+    version: usize,
+    type_id: usize,
+    contents: Contents,
+    length: Length, // gets decremented over time, we eventually forget the length.
+    encoded_size: usize, // needed if parent's length is Bits. Remember to increment parent's encoded size at End.
 }
 
 /// This might return a vec with fewer than requested elements, if we flip past
