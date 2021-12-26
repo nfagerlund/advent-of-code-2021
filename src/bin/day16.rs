@@ -35,6 +35,50 @@ fn part_one(inputs: &str) -> usize {
     0
 }
 
+// and here's our state machine step function.
+// things where I know I'm being bad: I'm not doing anything to guard against
+// malformed input of any kind. deal w/ it.
+fn parse_bit_stream_step<T: Iterator<Item = char>>(
+    state: ParseState, stack: &mut Vec<Packet>, bit_stream: &mut T
+) -> ParseState {
+    match state {
+        ParseState::StartPacket => {
+            let version = take_number(bit_stream, 3);
+            let type_id = take_number(bit_stream, 3);
+            let encoded_size = 6_usize;
+            let contents = match type_id {
+                4 => Contents::Literal(0),
+                _ => Contents::Operator(Vec::new()),
+            };
+            let length = match type_id {
+                4 => Length::Literal,
+                _ => Length::Unknown,
+            };
+            let sum_of_child_versions = 0_usize;
+            let packet = Packet {
+                version,
+                type_id,
+                encoded_size,
+                contents,
+                length,
+                sum_of_child_versions,
+            };
+            stack.push(packet);
+            // and, return!
+            match type_id {
+                4 => ParseState::ParseValue,
+                _ => ParseState::ParseLength,
+            }
+        },
+        ParseState::ParseValue => {},
+        ParseState::ParseLength => {},
+        ParseState::EndPacket => {},
+        ParseState::Finished => {
+            ParseState::Finished
+        },
+    }
+}
+
 enum ParseState {
     StartPacket, // get ver/type header, make & push packet skeleton, jump to ParseValue or ParseLength
     ParseValue, // continue til done, then jump to EndPacket
@@ -61,6 +105,7 @@ struct Packet {
     contents: Contents,
     length: Length, // gets decremented over time, we eventually forget the length.
     encoded_size: usize, // needed if parent's length is Bits. Remember to increment parent's encoded size at End.
+    sum_of_child_versions: usize, // eh fuck it
 }
 
 /// This might return a vec with fewer than requested elements, if we flip past
