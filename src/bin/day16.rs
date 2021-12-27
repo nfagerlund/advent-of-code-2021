@@ -75,6 +75,7 @@ fn parse_bit_stream_step<T: Iterator<Item = char>>(
                 length,
                 sum_of_child_versions,
             };
+            println!("Starting: {:?}", &packet);
             stack.push(packet);
             // and, return!
             match type_id {
@@ -94,6 +95,7 @@ fn parse_bit_stream_step<T: Iterator<Item = char>>(
             let chunk = take_number(bit_stream, 4);
             // should always be true: vv
             if let Contents::Literal(ref mut value) = current.contents {
+                println!("Increasing {} by {}", *value, chunk);
                 *value += chunk;
             }
             // and return!
@@ -111,12 +113,16 @@ fn parse_bit_stream_step<T: Iterator<Item = char>>(
                     // bits mode, length is next 15 bits.
                     current.encoded_size += 1 + 15;
                     let length = take_number(bit_stream, 15);
+                    println!("Op will continue for {} bits", length);
+                    assert_ne!(length, 0);
                     current.length = Length::Bits(length);
                 },
                 1 => {
                     // count mode, length is next 11 bits
                     current.encoded_size += 1 + 11;
                     let length = take_number(bit_stream, 11);
+                    println!("Op will continue for {} packets", length);
+                    assert_ne!(length, 0);
                     current.length = Length::Count(length);
                 },
                 _ => panic!("wyd, thought this was bits"),
@@ -188,6 +194,9 @@ fn reduce_finished_packet(packet: Packet) -> Packet {
     // As expected, packet versions have no effect on anything lmao.
     // okay, time to simplify this. First, early exit if it's already a literal.
     if packet.type_id == 4 {
+        if let Contents::Literal(val) = packet.contents {
+            println!("Got true literal from input: {}", val);
+        }
         return packet;
     }
 
@@ -293,6 +302,7 @@ enum ParseState {
     Finished, // do nothing forever.
 }
 
+#[derive(Debug)]
 enum Length {
     Unknown,
     Literal,
@@ -300,11 +310,13 @@ enum Length {
     Count(usize),
 }
 
+#[derive(Debug)]
 enum Contents {
     Operator(Vec<Packet>),
     Literal(usize),
 }
 
+#[derive(Debug)]
 struct Packet {
     version: usize,
     type_id: usize,
