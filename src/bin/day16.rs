@@ -128,9 +128,11 @@ fn parse_bit_stream_step<T: Iterator<Item = char>>(
             parent.sum_of_child_versions += current.version + current.sum_of_child_versions;
             // Hold onto child length for a sec:
             let current_encoded_size = current.encoded_size;
+            // Reduce the child to a literal:
+            let reduced = reduce_finished_packet(current); // <- move/consume
             // Absorb finished packet: (vv always true)
             if let Contents::Operator(ref mut children) = parent.contents {
-                children.push(current); // <- move
+                children.push(reduced);
             }
             // Decrement parent length... and return!
             match parent.length {
@@ -164,7 +166,7 @@ fn parse_bit_stream_step<T: Iterator<Item = char>>(
 }
 
 // Consumes a packet and returns its reduced form (which will always be of type 4, literal.)
-fn reduce_finished_packet(mut packet: Packet) -> Packet {
+fn reduce_finished_packet(packet: Packet) -> Packet {
     // As expected, packet versions have no effect on anything lmao.
     match packet.type_id {
         4 => {
