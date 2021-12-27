@@ -27,4 +27,17 @@ fn main() {
     // let first = chars.take(3);
     // let second = chars.take(3);
     // IT DOES. sigh.
+
+    let mut stack = vec![Yo{encoded_size: 9}, Yo{encoded_size: 20}];
+    let child = stack.pop().unwrap();
+    let parent = stack.last_mut().unwrap();
+    parent.encoded_size += child.encoded_size + 8;
+    dbg!(&parent);
+
+
+}
+
+#[derive(Debug)]
+struct Yo {
+    encoded_size: usize,
 }
