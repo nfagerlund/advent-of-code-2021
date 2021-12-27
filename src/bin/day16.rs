@@ -9,8 +9,19 @@ fn main() {
 }
 
 fn part_two(inputs: &str) -> usize {
-
-    0
+    let mut bit_stream = packet_bits_iterator(inputs);
+    let mut parse_stack: Vec<Packet> = Vec::new();
+    let mut parse_state = ParseState::StartPacket;
+    while parse_state != ParseState::Finished {
+        parse_state = parse_bit_stream_step(parse_state, &mut parse_stack, &mut bit_stream);
+    }
+    let outer_packet = parse_stack.get(0).unwrap();
+    if let Contents::Literal(outer_value) = outer_packet.contents {
+        println!("Literal value of outer packet: {}", outer_value);
+        outer_value
+    } else {
+        panic!("????@!");
+    }
 }
 
 // okay uhhhhhhh let's not prematurely build-out on this one. Right now we're
@@ -116,8 +127,13 @@ fn parse_bit_stream_step<T: Iterator<Item = char>>(
         ParseState::EndPacket => {
             // First the easy exit:
             if stack.len() <= 1 {
+                // Reduce outer packet
+                let outer_packet = stack.pop().unwrap(); // here's our panic for len == 0
+                stack.push(reduce_finished_packet(outer_packet));
+                // and return!
                 return ParseState::Finished;
             }
+
             // Ok so: we now know there's a parent, which is definitely an Operator.
             // grab the warp core:
             let current = stack.pop().unwrap();
@@ -364,7 +380,7 @@ fn packet_bits_iterator(hex: &str) -> impl Iterator<Item = char> + '_ {
 #[cfg(test)]
 mod tests {
     use super::*;
-    const EXAMPLE: &str = "";
+    // const EXAMPLE: &str = "";
 
     #[test]
     fn example_part_one() {
