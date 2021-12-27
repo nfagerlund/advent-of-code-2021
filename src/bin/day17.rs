@@ -7,7 +7,12 @@ fn main() {
     part_two(&inputs);
 }
 
-fn part_two(_inputs: &str) {}
+// Find every initial velocity that causes the probe to hit the target on Some
+// Step, and return the count.
+fn part_two(inputs: &str) -> usize {
+
+    0
+}
 
 // Return the highest Y position the probe can hit on a trajectory that will at
 // some point be within the target area on a step.
@@ -69,7 +74,7 @@ mod tests {
 
     #[test]
     fn example_part_two() {
-        let answer = ();
+        let answer = 112;
         let result = part_two(EXAMPLE);
         assert_eq!(result, answer);
     }
@@ -109,4 +114,6 @@ mod tests {
     // solve this one? We just need to find v_y where final_y = -(v_y+1), then
     // find the peak of trajectory for that v_y.
 
+    // OK ok ok. so, part 2 is obnoxious enough that I don't feel bad about
+    // cheesing part 1.
 }
