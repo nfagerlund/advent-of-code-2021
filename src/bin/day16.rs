@@ -7,7 +7,10 @@ fn main() {
     part_two(&inputs);
 }
 
-fn part_two(_inputs: &str) {}
+fn part_two(inputs: &str) -> usize {
+
+    0
+}
 
 // okay uhhhhhhh let's not prematurely build-out on this one. Right now we're
 // just summing the version fields? So we need a stack to pop packets on and off
@@ -241,9 +244,14 @@ mod tests {
 
     #[test]
     fn example_part_two() {
-        let answer = ();
-        let result = part_two(EXAMPLE);
-        assert_eq!(result, answer);
+        assert_eq!(3, part_two("C200B40A82"));
+        assert_eq!(54, part_two("04005AC33890"));
+        assert_eq!(7, part_two("880086C3E88112"));
+        assert_eq!(9, part_two("CE00C43D881120"));
+        assert_eq!(1, part_two("D8005AC2A8F0"));
+        assert_eq!(0, part_two("F600BC2D8F"));
+        assert_eq!(0, part_two("9C005AC2F8F0"));
+        assert_eq!(1, part_two("9C0141080250320F1802104A08"));
     }
 
     #[test]
