@@ -19,36 +19,39 @@ fn part_two(inputs: &str) -> usize {
     let minimum_v_x = (0..i64::MAX).find(|val| {
         val.pow(2) + *val >= x1 * 2
     }).unwrap();
-    println!("Lower bound for v_x: {}", minimum_v_x);
     let maximum_v_x = x2;
     let maximum_v_y = -y1 - 1; // from part_one
     let minimum_v_y = y1;
+    println!("outer bounds for velocities:\n([{}, {}], [{}, {}])", minimum_v_x, maximum_v_x, minimum_v_y, maximum_v_y);
     // Right right, and we only care about the count, don't we?
     let mut valid_trajectories: usize = 0;
 
-    for v_x in minimum_v_x..=maximum_v_x {
-        for v_y in minimum_v_y..=maximum_v_y {
+    'exes: for v_x in minimum_v_x..=maximum_v_x {
+        'whys: for v_y in minimum_v_y..=maximum_v_y {
+            println!("trying ({}, {})", v_x, v_y);
             for step in 1..i64::MAX {
-                println!("({}, {}), {}", v_x, v_y, step);
                 let x = plot_x(v_x, step);
-                if x > x2 {
+                if x > x2 { // x2 is right border
                     // overshot. Better luck next time.
-                    break;
+                    println!("overshot x");
+                    continue 'exes;
                 }
                 if x >= x1 {
                     // Maybe!!
                     let y = plot_y(v_y, step);
-                    if y > y2 {
+                    if y < y1 { // y1 is bottom border
                         // overshot.
-                        break;
+                        println!("overshot y");
+                        continue 'whys;
                     }
-                    if y >= y1 {
+                    if y <= y2 { // y2 is upper border
                         // got one!
                         println!("Hey cool! ({}, {})", x, y);
                         valid_trajectories += 1;
-                        break;
+                        continue 'whys;
                     }
                     // otherwise not there yet.
+                    println!("meh: ({}, {}), continuing", x, y);
                 }
                 // otherwise not there yet.
             }
