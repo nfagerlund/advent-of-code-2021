@@ -184,117 +184,78 @@ fn parse_bit_stream_step<T: Iterator<Item = char>>(
 // Consumes a packet and returns its reduced form (which will always be of type 4, literal.)
 fn reduce_finished_packet(packet: Packet) -> Packet {
     // As expected, packet versions have no effect on anything lmao.
+    // okay, time to simplify this. First, early exit if it's already a literal.
+    if packet.type_id == 4 {
+        return packet;
+    }
+
+    // Now we know it's an operator, so let's get all the child values out here where we can use em.
+    let child_values: Vec<usize> = if let Contents::Operator(ref children) = packet.contents {
+        children.iter().map(|child| {
+            if let Contents::Literal(value) = child.contents {
+                value
+            } else {
+                panic!("unreduced child in type {} packet", packet.type_id);
+            }
+        }).collect()
+    } else {
+        panic!("Bad child list for type {} packet", packet.type_id);
+    };
+
     match packet.type_id {
-        4 => {
-            // no-op, return the packet undigested.
-            packet
-        },
         0 => {
             // sum
-            if let Contents::Operator(ref children) = packet.contents {
-                let sum = children.iter().fold(0_usize, |accum, child| {
-                    if let Contents::Literal(value) = child.contents {
-                        accum + value
-                    } else {
-                        panic!("unreduced child in type 0 packet");
-                    }
-                });
-                literalize(&packet, sum)
-            } else {
-                panic!("Bad child list for type 0 packet");
-            }
+            let sum = child_values.iter().fold(0_usize, |accum, value| {
+                accum + *value
+            });
+            literalize(&packet, sum)
         },
         1 => {
             // product
-            if let Contents::Operator(ref children) = packet.contents {
-                let product = children.iter().fold(1_usize, |accum, child| {
-                    if let Contents::Literal(value) = child.contents {
-                        accum * value
-                    } else {
-                        panic!("unreduced child in type 1 packet");
-                    }
-                });
-                literalize(&packet, product)
-            } else {
-                panic!("Bad contents for type 1 packet");
-            }
+            let product = child_values.iter().fold(1_usize, |accum, value| {
+                accum * *value
+            });
+            literalize(&packet, product)
         },
         2 => {
             // min
-            if let Contents::Operator(ref children) = packet.contents {
-                // plz imagine a panic here for zero-length children, but I can't be arsed rn.
-                let min = children.iter().fold(usize::MAX, |accum, child| {
-                    if let Contents::Literal(value) = child.contents {
-                        cmp::min(accum, value)
-                    } else {
-                        panic!("unreduced child, type 2");
-                    }
-                });
-                literalize(&packet, min)
-            } else {
-                panic!("Bad contents for type 2 packet");
-            }
+            // plz imagine a panic here for zero-length children, but I can't be arsed rn.
+            let min = child_values.iter().fold(usize::MAX, |accum, value| {
+                cmp::min(accum, *value)
+            });
+            literalize(&packet, min)
         },
         3 => {
             // max
-            if let Contents::Operator(ref children) = packet.contents {
-                // same note as for min.
-                let max = children.iter().fold(0_usize, |accum, child| {
-                    if let Contents::Literal(value) = child.contents {
-                        cmp::max(accum, value)
-                    } else {
-                        panic!("unreduced child, type 3");
-                    }
-                });
-                literalize(&packet, max)
-            } else {
-                panic!("Bad contents for type 3 packet");
-            }
+            // same note as for min.
+            let max = child_values.iter().fold(0_usize, |accum, value| {
+                cmp::max(accum, *value)
+            });
+            literalize(&packet, max)
         },
         5 => {
             // > (1|0)
-            if let Contents::Operator(ref children) = packet.contents {
-                if let Contents::Literal(lhs) = children[0].contents {
-                    if let Contents::Literal(rhs) = children[1].contents {
-                        let val: usize = match lhs > rhs {
-                            true => 1,
-                            false => 0,
-                        };
-                        return literalize(&packet, val);
-                    }
-                }
-            }
-            panic!("Bad contents for type 5 packet");
+            let val: usize = match child_values[0] > child_values[1] {
+                true => 1,
+                false => 0,
+            };
+            return literalize(&packet, val);
         },
         6 => {
             // < (1|0)
-            if let Contents::Operator(ref children) = packet.contents {
-                if let Contents::Literal(lhs) = children[0].contents {
-                    if let Contents::Literal(rhs) = children[1].contents {
-                        let val: usize = match lhs < rhs {
-                            true => 1,
-                            false => 0,
-                        };
-                        return literalize(&packet, val);
-                    }
-                }
-            }
-            panic!("Bad contents for type 6 packet");
+            let val: usize = match child_values[0] < child_values[1] {
+                true => 1,
+                false => 0,
+            };
+            return literalize(&packet, val);
         },
         7 => {
             // = (1|0)
-            if let Contents::Operator(ref children) = packet.contents {
-                if let Contents::Literal(lhs) = children[0].contents {
-                    if let Contents::Literal(rhs) = children[1].contents {
-                        let val: usize = match lhs == rhs {
-                            true => 1,
-                            false => 0,
-                        };
-                        return literalize(&packet, val);
-                    }
-                }
-            }
-            panic!("Bad contents for type 7 packet");
+            let val: usize = match child_values[0] == child_values[1] {
+                true => 1,
+                false => 0,
+            };
+            return literalize(&packet, val);
         },
         _ => panic!("Totally unknown packet type"),
     }
