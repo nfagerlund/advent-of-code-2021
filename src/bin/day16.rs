@@ -15,6 +15,8 @@ fn part_two(inputs: &str) -> usize {
     while parse_state != ParseState::Finished {
         parse_state = parse_bit_stream_step(parse_state, &mut parse_stack, &mut bit_stream);
     }
+    let junk: Vec<char> = bit_stream.collect();
+    println!("remaining bits: {:?}", junk);
     let outer_packet = parse_stack.get(0).unwrap();
     if let Contents::Literal(outer_value) = outer_packet.contents {
         println!("Literal value of outer packet: {}", outer_value);
@@ -208,6 +210,7 @@ fn reduce_finished_packet(packet: Packet) -> Packet {
             let sum = child_values.iter().fold(0_usize, |accum, value| {
                 accum + *value
             });
+            println!("Sum of {:?} = {}", &child_values, sum);
             literalize(&packet, sum)
         },
         1 => {
@@ -215,6 +218,7 @@ fn reduce_finished_packet(packet: Packet) -> Packet {
             let product = child_values.iter().fold(1_usize, |accum, value| {
                 accum * *value
             });
+            println!("Product of {:?} = {}", &child_values, product);
             literalize(&packet, product)
         },
         2 => {
@@ -223,6 +227,7 @@ fn reduce_finished_packet(packet: Packet) -> Packet {
             let min = child_values.iter().fold(usize::MAX, |accum, value| {
                 cmp::min(accum, *value)
             });
+            println!("Min of {:?} = {}", &child_values, min);
             literalize(&packet, min)
         },
         3 => {
@@ -231,6 +236,7 @@ fn reduce_finished_packet(packet: Packet) -> Packet {
             let max = child_values.iter().fold(0_usize, |accum, value| {
                 cmp::max(accum, *value)
             });
+            println!("Max of {:?} = {}", &child_values, max);
             literalize(&packet, max)
         },
         5 => {
@@ -239,6 +245,7 @@ fn reduce_finished_packet(packet: Packet) -> Packet {
                 true => 1,
                 false => 0,
             };
+            println!("greater than of {:?} = {}", &child_values, val);
             return literalize(&packet, val);
         },
         6 => {
@@ -247,6 +254,7 @@ fn reduce_finished_packet(packet: Packet) -> Packet {
                 true => 1,
                 false => 0,
             };
+            println!("less than of {:?} = {}", &child_values, val);
             return literalize(&packet, val);
         },
         7 => {
@@ -255,6 +263,7 @@ fn reduce_finished_packet(packet: Packet) -> Packet {
                 true => 1,
                 false => 0,
             };
+            println!("equality of {:?} = {}", &child_values, val);
             return literalize(&packet, val);
         },
         _ => panic!("Totally unknown packet type"),
@@ -330,6 +339,7 @@ fn take_number<T: Iterator<Item = char>>(iter: &mut T, n: usize) -> usize {
 }
 
 fn packet_bits_iterator(hex: &str) -> impl Iterator<Item = char> + '_ {
+    let hex = hex.trim();
     hex.chars().map(|ch| {
         let num = ch.to_digit(16).unwrap();
         let bits_string = format!("{:04b}", num);
