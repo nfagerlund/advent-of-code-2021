@@ -204,34 +204,79 @@ fn reduce_finished_packet(mut packet: Packet) -> Packet {
         2 => {
             // min
             if let Contents::Operator(ref children) = packet.contents {
-
+                // plz imagine a panic here for zero-length children, but I can't be arsed rn.
+                let min = children.iter().fold(usize::MAX, |accum, child| {
+                    if let Contents::Literal(value) = child.contents {
+                        cmp::min(accum, value)
+                    } else {
+                        panic!("unreduced child, type 2");
+                    }
+                });
+                literalize(&packet, min)
             } else {
                 panic!("Bad contents for type 2 packet");
             }
         },
         3 => {
             // max
-            if let Contents::Operator(ref children) = packet.contents {} else {
+            if let Contents::Operator(ref children) = packet.contents {
+                // same note as for min.
+                let max = children.iter().fold(0_usize, |accum, child| {
+                    if let Contents::Literal(value) = child.contents {
+                        cmp::max(accum, value)
+                    } else {
+                        panic!("unreduced child, type 3");
+                    }
+                });
+                literalize(&packet, max)
+            } else {
                 panic!("Bad contents for type 3 packet");
             }
         },
         5 => {
             // > (1|0)
-            if let Contents::Operator(ref children) = packet.contents {} else {
-                panic!("Bad contents for type 5 packet");
+            if let Contents::Operator(ref children) = packet.contents {
+                if let Contents::Literal(lhs) = children[0].contents {
+                    if let Contents::Literal(rhs) = children[1].contents {
+                        let val: usize = match lhs > rhs {
+                            true => 1,
+                            false => 0,
+                        };
+                        return literalize(&packet, val);
+                    }
+                }
             }
+            panic!("Bad contents for type 5 packet");
         },
         6 => {
             // < (1|0)
-            if let Contents::Operator(ref children) = packet.contents {} else {
-                panic!("Bad contents for type 6 packet");
+            if let Contents::Operator(ref children) = packet.contents {
+                if let Contents::Literal(lhs) = children[0].contents {
+                    if let Contents::Literal(rhs) = children[1].contents {
+                        let val: usize = match lhs < rhs {
+                            true => 1,
+                            false => 0,
+                        };
+                        return literalize(&packet, val);
+                    }
+                }
             }
+            panic!("Bad contents for type 6 packet");
         },
         7 => {
             // = (1|0)
-            if let Contents::Operator(ref children) = packet.contents {} else {
-                panic!("Bad contents for type 7 packet");
+            if let Contents::Operator(ref children) = packet.contents {
+                if let Contents::Literal(lhs) = children[0].contents {
+                    if let Contents::Literal(rhs) = children[1].contents {
+                        let val: usize = match lhs == rhs {
+                            true => 1,
+                            false => 0,
+                        };
+                        return literalize(&packet, val);
+                    }
+                }
             }
+            panic!("Bad contents for type 7 packet");
         },
         _ => panic!("Totally unknown packet type"),
     }
