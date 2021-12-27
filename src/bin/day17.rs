@@ -10,8 +10,51 @@ fn main() {
 // Find every initial velocity that causes the probe to hit the target on Some
 // Step, and return the count.
 fn part_two(inputs: &str) -> usize {
+    let results = parse_inputs(inputs);
+    let x1 = results[0];
+    let x2 = results[1];
+    let y1 = results[2];
+    let y2 = results[3];
 
-    0
+    let minimum_v_x = (0..i32::MAX).find(|val| {
+        val.pow(2) + *val >= x1 * 2
+    }).unwrap();
+    println!("Lower bound for v_x: {}", minimum_v_x);
+    let maximum_v_x = x2;
+    let maximum_v_y = -y1 - 1; // from part_one
+    let minimum_v_y = y1;
+    // Right right, and we only care about the count, don't we?
+    let mut valid_trajectories: usize = 0;
+
+    for v_x in minimum_v_x..=maximum_v_x {
+        for v_y in minimum_v_y..=maximum_v_y {
+            for step in 1..i32::MAX {
+                let x = plot_x(v_x, step);
+                if x > x2 {
+                    // overshot. Better luck next time.
+                    break;
+                }
+                if x >= x1 {
+                    // Maybe!!
+                    let y = plot_y(v_y, step);
+                    if y > y2 {
+                        // overshot.
+                        break;
+                    }
+                    if y >= y1 {
+                        // got one!
+                        valid_trajectories += 1;
+                        break;
+                    }
+                    // otherwise not there yet.
+                }
+                // otherwise not there yet.
+            }
+        }
+    }
+    println!("Found {} valid trajectories", valid_trajectories);
+
+    valid_trajectories
 }
 
 // Return the highest Y position the probe can hit on a trajectory that will at
@@ -115,5 +158,22 @@ mod tests {
     // find the peak of trajectory for that v_y.
 
     // OK ok ok. so, part 2 is obnoxious enough that I don't feel bad about
-    // cheesing part 1.
+    // cheesing part 1. Guess first question is, how do we find outer bounds
+    // beyond which we don't bother checking anymore? And second question is,
+    // within that barely-limited set, can we get away with brute forcing it?
+
+    // I guess we found an outer limit already, on the Y side:
+    // * Only care about y_v ≤ -final_y - 1.
+    // Starting y_v can be negative too, so what's a lower bound for that? I
+    // guess we can use "skip in one hop" for that too, so,
+    // * Only care about y_v ≥ final_y.
+    // Yikes, getting pretty big. Ah well. How about X? If the probe stops
+    // before the zone starts, that's a loss, so that's a lower bound. And if
+    // it skips the zone in the first step, that's an upper bound.
+    // * Only about x_v where plot_x(x_v, x_v) ≥ first_x and plot_x(x_v, 1) ≤ final_x.
+    // Mmmmm can we pre-process that at all? Not fully, but I think we can
+    // reduce it to a cheap sequence. For example, consider the example, where
+    // first_x = 20. For that lower bound, if you use the same value for v_x
+    // and step, you can reduce the formula to (x^2 + x)/2 = x_pos, so we're
+    // looking for the first v_x value where v_x^2 + v_x ≥ first_x.
 }
