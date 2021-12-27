@@ -114,7 +114,50 @@ fn parse_bit_stream_step<T: Iterator<Item = char>>(
             // unconditionally jump back to start packet.
             ParseState::StartPacket
         },
-        ParseState::EndPacket => {},
+        ParseState::EndPacket => {
+            // First the easy exit:
+            if stack.len() <= 1 {
+                return ParseState::Finished;
+            }
+            // Ok so: we now know there's a parent, which is definitely an Operator.
+            // grab the warp core:
+            let current = stack.pop().unwrap();
+            // Get to the vessel:
+            let parent = stack.last_mut().unwrap();
+            // Increment parent sums:
+            parent.encoded_size += current.encoded_size;
+            parent.sum_of_child_versions += current.version + current.sum_of_child_versions;
+            // Hold onto child length for a sec:
+            let current_encoded_size = current.encoded_size;
+            // Absorb finished packet: (vv always true)
+            if let Contents::Operator(ref mut children) = parent.contents {
+                children.push(current); // <- move
+            }
+            // Decrement parent length... and return!
+            match parent.length {
+                Length::Bits(ref mut length) => {
+                    *length -= current_encoded_size;
+                    if *length == 0 {
+                        // end parent!
+                        ParseState::EndPacket
+                    } else {
+                        // next child!
+                        ParseState::StartPacket
+                    }
+                },
+                Length::Count(ref mut length) => {
+                    *length -= 1;
+                    if *length == 0 {
+                        // end parent!
+                        ParseState::EndPacket
+                    } else {
+                        // next child!
+                        ParseState::StartPacket
+                    }
+                },
+                _ => panic!("len deffo shourdn't be unknown or literal at this point.")
+            }
+        },
         ParseState::Finished => {
             ParseState::Finished
         },
