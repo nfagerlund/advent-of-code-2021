@@ -14,25 +14,20 @@ fn part_two(_inputs: &str) {}
 // of, probably. And an accumulator. And as little as possible beyond that.
 fn part_one(inputs: &str) -> usize {
     let mut bit_stream = packet_bits_iterator(inputs);
-    let parse_stack: Vec<Length> = Vec::new();
-    let outer_ver = take_number(&mut bit_stream, 3);
-    let outer_type = take_number(&mut bit_stream, 3);
-    println!("outer packet\nver: {}\ntype: {}", outer_ver, outer_type);
-    if outer_type != 4 {
-        match bit_stream.next().unwrap() {
-            '0' => {
-                let length = take_number(&mut bit_stream, 15);
-                println!("bit-length mode: inner packets take {} bits", length);
-            },
-            '1' => {
-                let length = take_number(&mut bit_stream, 11);
-                println!("packet count mode: {} inner packets", length);
-            },
-            _ => panic!("wyd"),
-        };
+    let mut parse_stack: Vec<Packet> = Vec::new();
+    let mut parse_state = ParseState::StartPacket;
+    while parse_state != ParseState::Finished {
+        dbg!(&parse_state);
+        parse_state = parse_bit_stream_step(parse_state, &mut parse_stack, &mut bit_stream);
     }
 
-    0
+    // that should be it?
+    assert_eq!(parse_stack.len(), 1);
+    let outer_packet = parse_stack.get(0).unwrap();
+    let version_sum = outer_packet.sum_of_child_versions + outer_packet.version;
+    println!("Sum of all packet versions: {}", version_sum);
+
+    version_sum
 }
 
 // and here's our state machine step function.
@@ -164,6 +159,7 @@ fn parse_bit_stream_step<T: Iterator<Item = char>>(
     }
 }
 
+#[derive(PartialEq, Eq, Debug)]
 enum ParseState {
     StartPacket, // get ver/type header, make & push packet skeleton, jump to ParseValue or ParseLength
     ParseValue, // continue til done, then jump to EndPacket
