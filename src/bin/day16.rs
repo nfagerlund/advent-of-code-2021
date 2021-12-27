@@ -1,4 +1,5 @@
 use advent21::*;
+use std::cmp;
 
 // The one with decoding some kind of hellish binary wire format
 fn main() {
@@ -159,6 +160,94 @@ fn parse_bit_stream_step<T: Iterator<Item = char>>(
         ParseState::Finished => {
             ParseState::Finished
         },
+    }
+}
+
+// Consumes a packet and returns its reduced form (which will always be of type 4, literal.)
+fn reduce_finished_packet(mut packet: Packet) -> Packet {
+    // As expected, packet versions have no effect on anything lmao.
+    match packet.type_id {
+        4 => {
+            // no-op, return the packet undigested.
+            packet
+        },
+        0 => {
+            // sum
+            if let Contents::Operator(ref children) = packet.contents {
+                let sum = children.iter().fold(0_usize, |accum, child| {
+                    if let Contents::Literal(value) = child.contents {
+                        accum + value
+                    } else {
+                        panic!("unreduced child in type 0 packet");
+                    }
+                });
+                literalize(&packet, sum)
+            } else {
+                panic!("Bad child list for type 0 packet");
+            }
+        },
+        1 => {
+            // product
+            if let Contents::Operator(ref children) = packet.contents {
+                let product = children.iter().fold(1_usize, |accum, child| {
+                    if let Contents::Literal(value) = child.contents {
+                        accum * value
+                    } else {
+                        panic!("unreduced child in type 1 packet");
+                    }
+                });
+                literalize(&packet, product)
+            } else {
+                panic!("Bad contents for type 1 packet");
+            }
+        },
+        2 => {
+            // min
+            if let Contents::Operator(ref children) = packet.contents {
+
+            } else {
+                panic!("Bad contents for type 2 packet");
+            }
+        },
+        3 => {
+            // max
+            if let Contents::Operator(ref children) = packet.contents {} else {
+                panic!("Bad contents for type 3 packet");
+            }
+        },
+        5 => {
+            // > (1|0)
+            if let Contents::Operator(ref children) = packet.contents {} else {
+                panic!("Bad contents for type 5 packet");
+            }
+        },
+        6 => {
+            // < (1|0)
+            if let Contents::Operator(ref children) = packet.contents {} else {
+                panic!("Bad contents for type 6 packet");
+            }
+        },
+        7 => {
+            // = (1|0)
+            if let Contents::Operator(ref children) = packet.contents {} else {
+                panic!("Bad contents for type 7 packet");
+            }
+        },
+        _ => panic!("Totally unknown packet type"),
+    }
+}
+
+// Craft a new literal value packet, but use metadata fields from a provided operator packet.
+fn literalize(packet: &Packet, value: usize) -> Packet {
+    // Wanted to use struct update syntax, but it doesn't seem to work with
+    // refs; it always consumes the referred-to value.
+    Packet {
+        version: packet.version,
+        type_id: 4,
+        contents: Contents::Literal(value),
+        length: Length::Literal,
+        encoded_size: packet.encoded_size,
+        sum_of_child_versions: packet.sum_of_child_versions,
     }
 }
 
