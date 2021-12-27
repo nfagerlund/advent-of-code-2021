@@ -95,8 +95,8 @@ fn parse_bit_stream_step<T: Iterator<Item = char>>(
             let chunk = take_number(bit_stream, 4);
             // should always be true: vv
             if let Contents::Literal(ref mut value) = current.contents {
-                println!("Increasing {} by {}", *value, chunk);
-                *value += chunk;
+                println!("Shifting {} by 4 and adding {}", *value, chunk);
+                *value = (*value << 4) + chunk;
             }
             // and return!
             if is_final_chunk {
