@@ -12,8 +12,13 @@ fn part_two(_inputs: &str) {}
 // Return the highest Y position the probe can hit on a trajectory that will at
 // some point be within the target area on a step.
 fn part_one(inputs: &str) -> i32 {
-
-    0
+    let final_y = parse_inputs_to_cheat_outrageously(inputs);
+    // rudely assuming bottom of target area is always a negative y coord
+    let v_y = -final_y - 1;
+    // ...and then the peak is always when step == v_y, so,
+    let max_height = plot_y(v_y, v_y);
+    println!("Max height reached on optimal trajectory: {}", max_height);
+    max_height
 }
 
 // OK, I derived the equations, at least. Using "w" as "time step":
@@ -31,6 +36,12 @@ fn plot_x(v_x: i32, time: i32) -> i32 {
         // instead of reversing.
         plot_y(v_x, v_x)
     }
+}
+
+// Only returns the most negative Y coordinate.
+fn parse_inputs_to_cheat_outrageously(inputs: &str) -> i32 {
+    let results = parse_inputs(inputs);
+    results[2]
 }
 
 fn parse_inputs(inputs: &str) -> Vec<i32> {
