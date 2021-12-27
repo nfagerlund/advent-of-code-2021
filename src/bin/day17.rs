@@ -16,7 +16,7 @@ fn part_two(inputs: &str) -> usize {
     let y1 = results[2];
     let y2 = results[3];
 
-    let minimum_v_x = (0..i32::MAX).find(|val| {
+    let minimum_v_x = (0..i64::MAX).find(|val| {
         val.pow(2) + *val >= x1 * 2
     }).unwrap();
     println!("Lower bound for v_x: {}", minimum_v_x);
@@ -28,7 +28,8 @@ fn part_two(inputs: &str) -> usize {
 
     for v_x in minimum_v_x..=maximum_v_x {
         for v_y in minimum_v_y..=maximum_v_y {
-            for step in 1..i32::MAX {
+            for step in 1..i64::MAX {
+                println!("({}, {}), {}", v_x, v_y, step);
                 let x = plot_x(v_x, step);
                 if x > x2 {
                     // overshot. Better luck next time.
@@ -43,6 +44,7 @@ fn part_two(inputs: &str) -> usize {
                     }
                     if y >= y1 {
                         // got one!
+                        println!("Hey cool! ({}, {})", x, y);
                         valid_trajectories += 1;
                         break;
                     }
@@ -59,7 +61,7 @@ fn part_two(inputs: &str) -> usize {
 
 // Return the highest Y position the probe can hit on a trajectory that will at
 // some point be within the target area on a step.
-fn part_one(inputs: &str) -> i32 {
+fn part_one(inputs: &str) -> i64 {
     let final_y = parse_inputs_to_cheat_outrageously(inputs);
     // rudely assuming bottom of target area is always a negative y coord
     let v_y = -final_y - 1;
@@ -72,11 +74,11 @@ fn part_one(inputs: &str) -> i32 {
 // OK, I derived the equations, at least. Using "w" as "time step":
 // y = w * v_y - sum(1..(w - 1))
 // and then x has a bail-out condition but is otherwise same idea.
-fn plot_y(v_y: i32, time: i32) -> i32 {
+fn plot_y(v_y: i64, time: i64) -> i64 {
     // it's just that doing division with ints requires some concentration, that's all.
     time * v_y - (time * (time - 1))/2
 }
-fn plot_x(v_x: i32, time: i32) -> i32 {
+fn plot_x(v_x: i64, time: i64) -> i64 {
     if time < v_x {
         plot_y(v_x, time)
     } else {
@@ -87,12 +89,12 @@ fn plot_x(v_x: i32, time: i32) -> i32 {
 }
 
 // Only returns the most negative Y coordinate.
-fn parse_inputs_to_cheat_outrageously(inputs: &str) -> i32 {
+fn parse_inputs_to_cheat_outrageously(inputs: &str) -> i64 {
     let results = parse_inputs(inputs);
     results[2]
 }
 
-fn parse_inputs(inputs: &str) -> Vec<i32> {
+fn parse_inputs(inputs: &str) -> Vec<i64> {
     let inputs = inputs.trim();
     let (_, inputs) = inputs.split_once("area: ").unwrap();
     let (x_stuff, y_stuff) = inputs.split_once(", ").unwrap();
@@ -100,7 +102,7 @@ fn parse_inputs(inputs: &str) -> Vec<i32> {
     let (_, y_stuff) = y_stuff.split_once("=").unwrap();
     let (x1, x2) = x_stuff.split_once("..").unwrap();
     let (y1, y2) = y_stuff.split_once("..").unwrap();
-    [x1, x2, y1, y2].iter().map(|v| i32::from_str_radix(*v, 10).unwrap()).collect()
+    [x1, x2, y1, y2].iter().map(|v| i64::from_str_radix(*v, 10).unwrap()).collect()
 }
 
 #[cfg(test)]
