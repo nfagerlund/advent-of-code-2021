@@ -58,7 +58,7 @@ fn main() {
         Box::new(Snails::Regular(2)),
         Box::new(two)
     );
-    let outer = SnailfishNumber(Box::new(three));
+    let mut outer = SnailfishNumber(Box::new(three));
     // Annoying!!!
     // dbg!(&three);
     // if let Snails::Pair(_, right) = &mut three {
@@ -67,13 +67,16 @@ fn main() {
     //         dbg!(left);
     //     }
     // }
-    let SnailfishNumber(third) = &outer;
+    let SnailfishNumber(third) = &mut outer;
     match **third {
         Snails::Regular(ref num) => {
             println!("regular {}", num);
         },
         Snails::Pair(ref l, ref r) => {
             println!("l: {:?} r: {:?}", l, r);
+            if let Snails::Pair(ref second_l, ref second_r) = **r {
+                dbg!(second_l);
+            }
         }
     }
     dbg!(third);
