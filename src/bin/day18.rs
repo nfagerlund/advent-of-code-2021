@@ -16,11 +16,16 @@ fn part_one(inputs: &str) -> u32 {
     0
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 enum Reduction {
     Splode(Option<u32>, Option<u32>),
     Split,
     Nope,
+}
+
+enum Side {
+    L,
+    R,
 }
 
 #[derive(Debug)]
@@ -80,13 +85,64 @@ impl Sn {
                     // return splode
                     Reduction::Splode(Some(left), Some(right))
                 } else {
-                    // recurse and return first result!
-                    // TODO
-                    Reduction::Nope
+                    // recurse! respond to first result found, and return similar.
+                    let mut result = pair[0].reduce_step(level + 1);
+                    let mut result_side = Side::L;
+                    if result == Reduction::Nope {
+                        // only run right reduction if left whiffed.
+                        result = pair[1].reduce_step(level + 1);
+                        result_side = Side::R;
+                    }
+                    match result {
+                        // The first two are easy: just propagate so we know to bail.
+                        Reduction::Nope => Reduction::Nope,
+                        Reduction::Split => Reduction::Split,
+                        Reduction::Splode(mut sp_left, mut sp_right) => {
+                            // ok, now how did this go...?
+                            match result_side {
+                                Side::L => {
+                                    // If left is sploding, see if we need to dispose of the right component.
+                                    if let Some(num) = sp_right.take() {
+                                        pair[1].absorb_splode(num, Side::L);
+                                    }
+                                },
+                                Side::R => {
+                                    // If right is sploding, see if we need to dispose of left.
+                                    if let Some(num) = sp_left.take() {
+                                        pair[0].absorb_splode(num, Side::R);
+                                    }
+                                },
+                            }
+                            // then propagate whatever's left of the splode components.
+                            Reduction::Splode(sp_left, sp_right)
+                        }
+                    }
                 }
             },
         }
     }
+
+    // more recursive funtimes. This doesn't return anything bc we don't really
+    // need to know if it succeeds or not; a splode component that doesn't find
+    // a home just drifts off into the void.
+    fn absorb_splode(&mut self, val: u32, from: Side) {
+        match self {
+            Sn::Regular(num) => {
+                // sweet, done.
+                let num = *num;
+                let _ = mem::replace(self, Sn::Regular(num + val));
+            },
+            Sn::Pair(pair) => {
+                // ok...
+                let index: usize = match from {
+                    Side::L => 0,
+                    Side::R => 1,
+                };
+                pair[index].absorb_splode(val, from);
+            },
+        }
+    }
+
 }
 
 impl fmt::Display for Sn {
@@ -190,5 +246,32 @@ mod tests {
         println!("{}", &sn);
         let reduction = sn.reduce_step(4);
         println!("{:?}\n{}", reduction, &sn);
+
+        let bigger = parse_line(EXAMPLE.lines().next().unwrap());
+        let smaller = Sn::Pair(vec![Sn::Regular(4), Sn::Regular(9)]);
+        let mut combined = Sn::Pair(vec![bigger, smaller]);
+        println!("{}", &combined);
+        let reduction = combined.reduce_step(0);
+        println!("{:?}\n{}", reduction, &combined);
+        let reduction = combined.reduce_step(0);
+        println!("{:?}\n{}", reduction, &combined);
+        let reduction = combined.reduce_step(0);
+        println!("{:?}\n{}", reduction, &combined);
+    }
+
+    #[test]
+    fn try_absorb() {
+        let mut sn = Sn::Pair(vec![
+            Sn::Regular(4),
+            Sn::Pair(vec![
+                Sn::Regular(9),
+                Sn::Regular(6),
+            ]),
+        ]);
+        println!("{}", &sn);
+        sn.absorb_splode(4, Side::R);
+        println!("{}", &sn);
+        sn.absorb_splode(4, Side::L);
+        println!("{}", &sn);
     }
 }
