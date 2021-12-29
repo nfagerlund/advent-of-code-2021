@@ -9,8 +9,30 @@ fn main() {
     part_two(&inputs);
 }
 
-fn part_two(_inputs: &str) {}
+// what's the biggest magnitude you can get by adding only two of the numbers?
+fn part_two(inputs: &str) -> u32 {
+    // combinatorial explosion, cool cool cool. should be fine?
+    // vv NOT mut! must clone!
+    let sns: Vec<Sn> = inputs.lines().map(|line| parse_line(line)).collect();
+    let magnitudes: Vec<u32> = sns.iter().enumerate().map(|(which_left, left)| {
+        let sub_magnitudes: Vec<u32> = sns.iter().enumerate().map(|(which_right, right)| {
+            if which_left == which_right {
+                0 // cheating :] won't be greatest magnitude
+            } else {
+                let lhs = left.clone();
+                let rhs = right.clone();
+                lhs.add(rhs).magnitude()
+            }
+        }).collect();
+        sub_magnitudes
+    }).flatten().collect();
+    println!("All magnitudes: \n{:?}", &magnitudes);
+    let max = magnitudes.iter().max().unwrap();
+    println!("Biggest magnidude: {}", max);
+    *max
+}
 
+// Sum whole list of snailfish numbers
 fn part_one(inputs: &str) -> u32 {
     let final_sum = inputs.lines().map(parse_line).reduce(|accum, val| {
         accum.add(val)
@@ -33,7 +55,7 @@ enum Side {
     R,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum Sn {
     Regular(u32),
     Pair(Vec<Sn>),
@@ -68,8 +90,7 @@ impl Sn {
     }
 
     // Mutate self in-place to perform a single reduction step. Return the
-    // result, which the caller might need to act on. `level` is the level of
-    // recursion we're acting at, since that's relevant for splode.
+    // result, which the caller might need to act on.
     fn reduce_step(&mut self) ->  Reduction {
         // OK, we're currently outside the recursion -- if you're calling this
         // method, you're treating this Sn as the root.
@@ -81,7 +102,8 @@ impl Sn {
         result
     }
 
-    // Recursively process ONLY PLODES.
+    // Recursively process ONLY PLODES. `level` is the level of
+    // recursion we're acting at, since that's relevant for splode.
     fn reduce_splode_step(&mut self, level: u32) -> Reduction {
         match self {
             Sn::Regular(_) => {
@@ -254,6 +276,13 @@ mod tests {
 ";
 
     #[test]
+    fn example_part_two() {
+        let answer = 3993;
+        let result = part_two(EXAMPLE);
+        assert_eq!(result, answer);
+    }
+
+    #[test]
     fn example_part_one() {
         let answer = 4140;
         let result = part_one(EXAMPLE);
@@ -283,13 +312,6 @@ mod tests {
         let result = parse_line(first).add(parse_line(second));
         let result_text = format!("{}", &result);
         assert_eq!(answer, result_text);
-    }
-
-    #[test]
-    fn example_part_two() {
-        let answer = ();
-        let result = part_two(EXAMPLE);
-        assert_eq!(result, answer);
     }
 
     // This is more a manual test than a "test" test.
