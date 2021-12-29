@@ -64,34 +64,34 @@ impl Sn {
 
     // modify in-place to reduce.
     fn reduce(&mut self) {
-        while self.reduce_step(0) != Reduction::Nope {}
+        while self.reduce_step() != Reduction::Nope {}
     }
 
     // Mutate self in-place to perform a single reduction step. Return the
     // result, which the caller might need to act on. `level` is the level of
     // recursion we're acting at, since that's relevant for splode.
-    fn reduce_step(&mut self, level: u32) ->  Reduction {
+    fn reduce_step(&mut self) ->  Reduction {
+        // OK, we're currently outside the recursion -- if you're calling this
+        // method, you're treating this Sn as the root.
+        let mut result = self.reduce_splode_step(0);
+        if result == Reduction::Nope {
+            result = self.reduce_split_step(0);
+        }
+        // ...I think that's it?
+        result
+    }
+
+    // Recursively process ONLY PLODES.
+    fn reduce_splode_step(&mut self, level: u32) -> Reduction {
         match self {
-            Sn::Regular(num) => {
-                let num = *num;
-                if num > 9 {
-                    // make like a banana and perform nuclear fission
-                    let left = num / 2;
-                    let right = num / 2 + num % 2;
-                    let replacement = Sn::Pair(vec![Sn::Regular(left), Sn::Regular(right)]);
-                    let _ = mem::replace(self, replacement);
-                    Reduction::Split
-                } else {
-                    // yay finally
-                    Reduction::Nope
-                }
+            Sn::Regular(_) => {
+                Reduction::Nope
             },
             Sn::Pair(pair) => {
-                // OK, here comes the fun one. 😤
                 if level > 4 {
                     panic!("Theoretically, the rules say this should never happen.");
                 } else if level == 4 {
-                    // splode!
+                    // splode
                     // contents should 100% be regulars at this point; extract them.
                     let left = match pair[0] {
                         Sn::Regular(num) => num,
@@ -106,18 +106,17 @@ impl Sn {
                     // return splode
                     Reduction::Splode(Some(left), Some(right))
                 } else {
-                    // recurse! respond to first result found, and return similar.
-                    let mut result = pair[0].reduce_step(level + 1);
+                    // recurse, then process a descendent splode if necessary.
+                    let mut result = pair[0].reduce_splode_step(level + 1);
                     let mut result_side = Side::L;
                     if result == Reduction::Nope {
-                        // only run right reduction if left whiffed.
-                        result = pair[1].reduce_step(level + 1);
+                        // Only reduce right side if left was fully reduced already.
+                        result = pair[1].reduce_splode_step(level + 1);
                         result_side = Side::R;
                     }
                     match result {
-                        // The first two are easy: just propagate so we know to bail.
-                        Reduction::Nope => Reduction::Nope,
-                        Reduction::Split => Reduction::Split,
+                        Reduction::Nope => Reduction::Nope, // propagate+bail
+                        Reduction::Split => panic!("*pounds car hood* hey, I'm sploding here!!"),
                         Reduction::Splode(mut sp_left, mut sp_right) => {
                             // ok, now how did this go...?
                             match result_side {
@@ -139,6 +138,34 @@ impl Sn {
                         }
                     }
                 }
+            },
+        }
+    }
+
+    fn reduce_split_step(&mut self, level: u32) -> Reduction {
+        match self {
+            Sn::Regular(num) => {
+                let num = *num;
+                if num > 9 {
+                    // make like a banana and perform nuclear fission
+                    let left = num / 2;
+                    let right = num / 2 + num % 2;
+                    let replacement = Sn::Pair(vec![Sn::Regular(left), Sn::Regular(right)]);
+                    let _ = mem::replace(self, replacement);
+                    Reduction::Split
+                } else {
+                    // yay finally
+                    Reduction::Nope
+                }
+            },
+            Sn::Pair(pair) => {
+                // recurse, and just propagate the result. No further processing needed.
+                let mut result = pair[0].reduce_split_step(level + 1);
+                if result == Reduction::Nope {
+                    result = pair[1].reduce_split_step(level + 1);
+                }
+                // don't care about which side it was this time.
+                result
             },
         }
     }
@@ -259,102 +286,6 @@ mod tests {
     }
 
     #[test]
-    fn lets_step_through_add() {
-        let answer = "[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]";
-        let first = "[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]";
-        let second = "[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]";
-        let mut result = parse_line(first).add_unreduced(parse_line(second));
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-        println!("{}", &result);
-        result.reduce_step(0);
-    }
-
-    // IS THIS IT? a priority conflict between which is "first?"
-    // [[[[4,0],[5,4]],[[7,7],[6,0]]],[[7,[5,5]],[[0,[11,3]],[[6,3],[8,8]]]]]
-    // [[[[4,0],[5,4]],[[7,7],[6,0]]],[[7,[5,5]],[[11,0],[[9,3],[8,8]]]]]
-
-    #[test]
     fn example_part_two() {
         let answer = ();
         let result = part_two(EXAMPLE);
@@ -393,7 +324,7 @@ mod tests {
     fn try_split() {
         let mut sn = Sn::Regular(13);
         println!("{}", &sn);
-        let reduction = sn.reduce_step(0);
+        let reduction = sn.reduce_step();
         println!("{:?}\n{}", reduction, &sn);
     }
 
@@ -401,18 +332,18 @@ mod tests {
     fn try_splode() {
         let mut sn = Sn::Pair(vec![Sn::Regular(4), Sn::Regular(9)]);
         println!("{}", &sn);
-        let reduction = sn.reduce_step(4);
+        let reduction = sn.reduce_splode_step(4);
         println!("{:?}\n{}", reduction, &sn);
 
         let bigger = parse_line(EXAMPLE.lines().next().unwrap());
         let smaller = Sn::Pair(vec![Sn::Regular(4), Sn::Regular(9)]);
         let mut combined = Sn::Pair(vec![bigger, smaller]);
         println!("{}", &combined);
-        let reduction = combined.reduce_step(0);
+        let reduction = combined.reduce_step();
         println!("{:?}\n{}", reduction, &combined);
-        let reduction = combined.reduce_step(0);
+        let reduction = combined.reduce_step();
         println!("{:?}\n{}", reduction, &combined);
-        let reduction = combined.reduce_step(0);
+        let reduction = combined.reduce_step();
         println!("{:?}\n{}", reduction, &combined);
     }
 
