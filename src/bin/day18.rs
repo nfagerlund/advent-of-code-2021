@@ -14,6 +14,36 @@ fn part_one(inputs: &str) -> u32 {
     0
 }
 
+#[derive(Debug)]
+enum Sn {
+    Regular(u32),
+    Pair(Vec<Sn>),
+}
+
+fn parse_line(line: &str) -> Sn {
+    let mut stack: Vec<Sn> = Vec::new();
+    for ch in line.chars() {
+        if ch == '[' {
+            stack.push(Sn::Pair(vec![]));
+        } else if ch == ',' {
+            // do nothing
+        } else if let Some(digit) = ch.to_digit(10) {
+            if let Sn::Pair(ref mut current) = stack.last_mut().unwrap() {
+                current.push(Sn::Regular(digit));
+            }
+        } else if ch == ']' && stack.len() > 1 {
+            let done = stack.pop().unwrap();
+            if let Sn::Pair(ref mut current) = stack.last_mut().unwrap() {
+                current.push(done);
+            }
+        }
+    }
+    if stack.len() != 1 {
+        panic!("oops, messed up");
+    }
+    return stack.pop().unwrap();
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -41,5 +71,13 @@ mod tests {
         let answer = ();
         let result = part_two(EXAMPLE);
         assert_eq!(result, answer);
+    }
+
+    // This is more a manual test than a "test" test.
+    #[test]
+    fn parse_line_maybe() {
+        let line = EXAMPLE.lines().next().unwrap();
+        let result = parse_line(line);
+        dbg!(&result);
     }
 }
