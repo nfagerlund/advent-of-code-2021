@@ -46,6 +46,11 @@ impl Sn {
         }
     }
 
+    // modify in-place to reduce.
+    fn reduce(&mut self) {
+        while self.reduce_step(0) != Reduction::Nope {}
+    }
+
     // Mutate self in-place to perform a single reduction step. Return the
     // result, which the caller might need to act on. `level` is the level of
     // recursion we're acting at, since that's relevant for splode.
@@ -273,5 +278,15 @@ mod tests {
         println!("{}", &sn);
         sn.absorb_splode(4, Side::L);
         println!("{}", &sn);
+    }
+
+    #[test]
+    fn full_reduction_test() {
+        let unreduced = "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]";
+        let reduced = "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]";
+        let mut working_copy = parse_line(unreduced);
+        working_copy.reduce();
+        let result = format!("{}", &working_copy);
+        assert_eq!(&result[..], reduced);
     }
 }
