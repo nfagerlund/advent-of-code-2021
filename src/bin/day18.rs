@@ -1,5 +1,6 @@
 use advent21::*;
 use std::fmt;
+use std::mem;
 
 // the one with the snailfish numbers.
 fn main() {
@@ -16,6 +17,13 @@ fn part_one(inputs: &str) -> u32 {
 }
 
 #[derive(Debug)]
+enum Reduction {
+    Splode(Option<u32>, Option<u32>),
+    Split,
+    Nope,
+}
+
+#[derive(Debug)]
 enum Sn {
     Regular(u32),
     Pair(Vec<Sn>),
@@ -29,6 +37,53 @@ impl Sn {
             },
             Sn::Pair(list) => {
                 format!("[{},{}]", list[0].textualize(), list[1].textualize())
+            },
+        }
+    }
+
+    // Mutate self in-place to perform a single reduction step. Return the
+    // result, which the caller might need to act on. `level` is the level of
+    // recursion we're acting at, since that's relevant for splode.
+    fn reduce_step(&mut self, level: u32) ->  Reduction {
+        match self {
+            Sn::Regular(num) => {
+                let num = *num;
+                if num > 9 {
+                    // make like a banana and perform nuclear fission
+                    let left = num / 2;
+                    let right = num / 2 + num % 2;
+                    let replacement = Sn::Pair(vec![Sn::Regular(left), Sn::Regular(right)]);
+                    let _ = mem::replace(self, replacement);
+                    Reduction::Split
+                } else {
+                    // yay finally
+                    Reduction::Nope
+                }
+            },
+            Sn::Pair(pair) => {
+                // OK, here comes the fun one. 😤
+                if level > 4 {
+                    panic!("Theoretically, the rules say this should never happen.");
+                } else if level == 4 {
+                    // splode!
+                    // contents should 100% be regulars at this point; extract them.
+                    let left = match pair[0] {
+                        Sn::Regular(num) => num,
+                        _ => panic!("wyd"),
+                    };
+                    let right = match pair[1] {
+                        Sn::Regular(num) => num,
+                        _ => panic!("wyd"),
+                    };
+                    // replace self with 0
+                    let _ = mem::replace(self, Sn::Regular(0));
+                    // return splode
+                    Reduction::Splode(Some(left), Some(right))
+                } else {
+                    // recurse and return first result!
+                    // TODO
+                    Reduction::Nope
+                }
             },
         }
     }
@@ -102,5 +157,38 @@ mod tests {
         println!("{}", &result);
         let text = format!("{}", &result);
         assert_eq!(&text[..], line);
+    }
+
+    #[test]
+    fn replace_self_maybe() {
+        // I'm just really curious
+        let mut simple = Sn::Regular(4);
+        let paired = Sn::Pair(vec![Sn::Regular(8), Sn::Regular(2)]);
+        let simpref = &mut simple;
+        match simpref {
+            Sn::Regular(_) => {
+                let num = std::mem::replace(simpref, paired);
+                println!("num: {}", num);
+            },
+            _ => {},
+        }
+        println!("{}", &simple);
+        // wow!!! I was so sure that wouldn't work! so glad I read that linked lists book.
+    }
+
+    #[test]
+    fn try_split() {
+        let mut sn = Sn::Regular(13);
+        println!("{}", &sn);
+        let reduction = sn.reduce_step(0);
+        println!("{:?}\n{}", reduction, &sn);
+    }
+
+    #[test]
+    fn try_splode() {
+        let mut sn = Sn::Pair(vec![Sn::Regular(4), Sn::Regular(9)]);
+        println!("{}", &sn);
+        let reduction = sn.reduce_step(4);
+        println!("{:?}\n{}", reduction, &sn);
     }
 }
