@@ -1,4 +1,5 @@
 use advent21::*;
+use std::fmt;
 
 // the one with the snailfish numbers.
 fn main() {
@@ -18,6 +19,25 @@ fn part_one(inputs: &str) -> u32 {
 enum Sn {
     Regular(u32),
     Pair(Vec<Sn>),
+}
+
+impl Sn {
+    fn textualize(&self) -> String {
+        match self {
+            Sn::Regular(num) => {
+                format!("{}", num)
+            },
+            Sn::Pair(list) => {
+                format!("[{},{}]", list[0].textualize(), list[1].textualize())
+            },
+        }
+    }
+}
+
+impl fmt::Display for Sn {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.textualize())
+    }
 }
 
 fn parse_line(line: &str) -> Sn {
@@ -79,5 +99,8 @@ mod tests {
         let line = EXAMPLE.lines().next().unwrap();
         let result = parse_line(line);
         dbg!(&result);
+        println!("{}", &result);
+        let text = format!("{}", &result);
+        assert_eq!(&text[..], line);
     }
 }
