@@ -350,6 +350,10 @@ mod tests {
         result.reduce_step(0);
     }
 
+    // IS THIS IT? a priority conflict between which is "first?"
+    // [[[[4,0],[5,4]],[[7,7],[6,0]]],[[7,[5,5]],[[0,[11,3]],[[6,3],[8,8]]]]]
+    // [[[[4,0],[5,4]],[[7,7],[6,0]]],[[7,[5,5]],[[11,0],[[9,3],[8,8]]]]]
+
     #[test]
     fn example_part_two() {
         let answer = ();
