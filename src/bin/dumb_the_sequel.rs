@@ -28,13 +28,63 @@ fn main() {
     // let second = chars.take(3);
     // IT DOES. sigh.
 
-    let mut stack = vec![Yo{encoded_size: 9}, Yo{encoded_size: 20}];
-    let child = stack.pop().unwrap();
-    let parent = stack.last_mut().unwrap();
-    parent.encoded_size += child.encoded_size + 8;
-    dbg!(&parent);
+    // let mut stack = vec![Yo{encoded_size: 9}, Yo{encoded_size: 20}];
+    // let child = stack.pop().unwrap();
+    // let parent = stack.last_mut().unwrap();
+    // parent.encoded_size += child.encoded_size + 8;
+    // dbg!(&parent);
 
+    // Boxes use Move semantics, right?
+    // let thing = Box::new("hi");
+    // println!("the stuff is here: {:?}", thing);
+    // let elsewhere = thing;
+    // println!("the stuff is here: {}", thing);
+    // yes they do.
+    // let thingref = &thing;
+    // println!("where's the stuff? {:?}", thingref);
+    // println!("where's the original stuff? {:?}", thing);
 
+    // OK, time to learn the basics of recursive data structures I guess.
+
+    let one = Snails::Pair(
+        Box::new(Snails::Regular(8)),
+        Box::new(Snails::Regular(4))
+    );
+    let two = Snails::Pair(
+        Box::new(one),
+        Box::new(Snails::Regular(9))
+    );
+    let three = Snails::Pair(
+        Box::new(Snails::Regular(2)),
+        Box::new(two)
+    );
+    let outer = SnailfishNumber(Box::new(three));
+    // Annoying!!!
+    // dbg!(&three);
+    // if let Snails::Pair(_, right) = &mut three {
+    //     dbg!(right);
+    //     if let Snails::Pair(left, _) = right {
+    //         dbg!(left);
+    //     }
+    // }
+    let SnailfishNumber(third) = &outer;
+    match **third {
+        Snails::Regular(ref num) => {
+            println!("regular {}", num);
+        },
+        Snails::Pair(ref l, ref r) => {
+            println!("l: {:?} r: {:?}", l, r);
+        }
+    }
+    dbg!(third);
+}
+
+struct SnailfishNumber(Box<Snails>);
+
+#[derive(Debug)]
+enum Snails {
+    Regular(u32),
+    Pair(Box<Snails>, Box<Snails>),
 }
 
 #[derive(Debug)]
