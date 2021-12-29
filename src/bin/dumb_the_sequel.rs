@@ -91,6 +91,25 @@ enum Snails {
 }
 
 #[derive(Debug)]
+enum AltSnail {
+    Regular(u32),
+    Pair(Vec<AltSnail>),
+}
+
+#[derive(Debug)]
 struct Yo {
     encoded_size: usize,
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::*;
+
+    #[test]
+    fn alt_snails() {
+        let inner = AltSnail::Pair(vec![AltSnail::Regular(8), AltSnail::Regular(4)]);
+        let mid = AltSnail::Pair(vec![AltSnail::Regular(1), inner]);
+        let outer = AltSnail::Pair(vec![mid, AltSnail::Regular(9)]);
+        dbg!(&outer);
+    }
 }
