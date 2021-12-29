@@ -12,8 +12,13 @@ fn main() {
 fn part_two(_inputs: &str) {}
 
 fn part_one(inputs: &str) -> u32 {
-
-    0
+    let final_sum = inputs.lines().map(parse_line).reduce(|accum, val| {
+        accum.add(val)
+    }).unwrap();
+    println!("Final sum: {}", &final_sum);
+    let magnitude = final_sum.magnitude();
+    println!("Magnitude of final sum: {}", magnitude);
+    magnitude
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -159,6 +164,19 @@ impl Sn {
         }
     }
 
+    fn add_unreduced(self, other: Sn) -> Sn {
+        Sn::Pair(vec![self, other])
+    }
+
+    // Finally: Consume self and other to return a reduced sum.
+    fn add(self, other: Sn) -> Sn {
+        println!("  {}", &self);
+        println!("+ {}", &other);
+        let mut result = Sn::Pair(vec![self, other]);
+        result.reduce();
+        println!("= {}\n", &result);
+        result
+    }
 }
 
 impl fmt::Display for Sn {
@@ -194,6 +212,8 @@ fn parse_line(line: &str) -> Sn {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
+
     const EXAMPLE: &str = "[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]
 [[[5,[2,8]],4],[5,[[9,9],0]]]
 [6,[[[6,2],[5,6]],[[7,6],[4,7]]]]
@@ -211,6 +231,123 @@ mod tests {
         let answer = 4140;
         let result = part_one(EXAMPLE);
         assert_eq!(result, answer);
+    }
+
+    #[test]
+    fn another_add_test() {
+        let text = "[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]
+[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]
+[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]
+[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]
+[7,[5,[[3,8],[1,4]]]]
+[[2,[2,2]],[8,[8,1]]]
+[2,9]
+[1,[[[9,3],9],[[9,0],[0,7]]]]
+[[[5,[7,4]],7],1]
+[[[[4,2],2],6],[8,7]]";
+        part_one(text);
+    }
+
+    #[test]
+    fn yet_another_add_test() {
+        let answer = "[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]";
+        let first = "[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]";
+        let second = "[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]";
+        let result = parse_line(first).add(parse_line(second));
+        let result_text = format!("{}", &result);
+        assert_eq!(answer, result_text);
+    }
+
+    #[test]
+    fn lets_step_through_add() {
+        let answer = "[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]";
+        let first = "[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]";
+        let second = "[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]";
+        let mut result = parse_line(first).add_unreduced(parse_line(second));
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
+        println!("{}", &result);
+        result.reduce_step(0);
     }
 
     #[test]
@@ -293,18 +430,40 @@ mod tests {
 
     #[test]
     fn full_reduction_test() {
-        let unreduced = "[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]";
-        let reduced = "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]";
-        let mut working_copy = parse_line(unreduced);
-        working_copy.reduce();
-        let result = format!("{}", &working_copy);
-        assert_eq!(&result[..], reduced);
+        let mut examples = HashMap::new();
+        examples.insert("[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]", "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]");
+        examples.insert(
+            "[[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]],[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]]",
+            "[[[[7,0],[7,7]],[[7,7],[7,8]]],[[[7,7],[8,8]],[[7,7],[8,7]]]]"
+        );
+        examples.insert(
+            "[[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]],[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]]",
+            "[[[[6,7],[6,7]],[[7,7],[0,7]]],[[[8,7],[7,7]],[[8,8],[8,0]]]]"
+        );
+        examples.insert(
+            "[[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]],[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]]",
+            "[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]"
+        );
+        for (unreduced, reduced) in examples {
+            let mut working_copy = parse_line(unreduced);
+            working_copy.reduce();
+            let result = format!("{}", &working_copy);
+            assert_eq!(&result[..], reduced);
+        }
     }
 
     #[test]
     fn magnitude_test() {
-        let example = "[[9,1],[1,9]]";
-        let working_copy = parse_line(example);
-        assert_eq!(working_copy.magnitude(), 129);
+        let mut examples = HashMap::new();
+        examples.insert("[[9,1],[1,9]]", 129);
+        examples.insert("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]", 3488);
+        examples.insert("[[[[5,0],[7,4]],[5,5]],[6,6]]", 1137);
+        examples.insert("[[[[3,0],[5,3]],[4,4]],[5,5]]", 791);
+        examples.insert("[[[[1,1],[2,2]],[3,3]],[4,4]]", 445);
+        examples.insert("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]", 1384);
+        for (text, result) in examples {
+            let working_copy = parse_line(text);
+            assert_eq!(working_copy.magnitude(), result);
+        }
     }
 }
