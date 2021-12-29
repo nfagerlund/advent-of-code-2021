@@ -46,6 +46,17 @@ impl Sn {
         }
     }
 
+    fn magnitude(&self) -> u32 {
+        match self {
+            Sn::Regular(num) => {
+                *num
+            },
+            Sn::Pair(pair) => {
+                pair[0].magnitude() * 3 + pair[1].magnitude() * 2
+            },
+        }
+    }
+
     // modify in-place to reduce.
     fn reduce(&mut self) {
         while self.reduce_step(0) != Reduction::Nope {}
@@ -288,5 +299,12 @@ mod tests {
         working_copy.reduce();
         let result = format!("{}", &working_copy);
         assert_eq!(&result[..], reduced);
+    }
+
+    #[test]
+    fn magnitude_test() {
+        let example = "[[9,1],[1,9]]";
+        let working_copy = parse_line(example);
+        assert_eq!(working_copy.magnitude(), 129);
     }
 }
